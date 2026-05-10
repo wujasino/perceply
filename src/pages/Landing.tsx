@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Zap, Eye, BarChart3, Shield, ArrowRight } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
+import { useTranslation } from '@/lib/locale';
 
 const features = [
   {
@@ -37,6 +38,8 @@ const Landing = () => {
       navigate(`/dashboard?brand=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,14 +77,14 @@ const Landing = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Enter a brand name (e.g. Tesla, Apple)..."
+              placeholder={t('placeholderExample')}
               className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-sm outline-none py-3"
             />
             <button
               type="submit"
               className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 shrink-0"
             >
-              Brew
+              {t('brew')}
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </motion.form>
@@ -92,7 +95,7 @@ const Landing = () => {
             transition={{ delay: 0.5 }}
             className="text-xs text-muted-foreground/50 mt-4"
           >
-            Try "Tesla" or "Apple" for a demo analysis
+            {t('tryDemo')}
           </motion.p>
         </div>
       </section>
@@ -130,15 +133,13 @@ const Landing = () => {
       {/* CTA */}
       <section className="py-20 px-4">
         <div className="max-w-2xl mx-auto text-center glass-card p-12">
-          <h2 className="text-2xl font-display text-foreground mb-3">Start your first brew</h2>
-          <p className="text-muted-foreground text-sm mb-6">
-            No credit card required. Get your first 3 brand analyses free.
-          </p>
+          <h2 className="text-2xl font-display text-foreground mb-3">{t('startFirstBrew')}</h2>
+          <p className="text-muted-foreground text-sm mb-6">{t('noCard')}</p>
           <button
             onClick={() => navigate('/pricing')}
             className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
           >
-            View Pricing
+            {t('viewPricing')}
           </button>
         </div>
       </section>

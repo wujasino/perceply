@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
+import { useTranslation } from '@/lib/locale';
 import { BrewingProgress } from '@/components/BrewingState';
 import { TrustScoreGauge } from '@/components/TrustScoreGauge';
 import { RadarChartCard } from '@/components/charts/RadarChartCard';
@@ -33,13 +34,13 @@ const Dashboard = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-1 text-muted-foreground text-xs mb-2 hover:text-foreground transition-colors"
             >
-              <ArrowLeft className="w-3 h-3" /> Back
+              <ArrowLeft className="w-3 h-3" /> {useTranslation().t('back')}
             </button>
             <h1 className="text-2xl font-display text-foreground">
-              {brandName} <span className="text-muted-foreground">/ AI Audit</span>
+              {brandName} <span className="text-muted-foreground">{useTranslation().t('auditSuffix')}</span>
             </h1>
             <p className="text-muted-foreground text-xs mt-1">
-              {status === 'completed' ? `Brewed: ${new Date().toLocaleDateString()}` : 'Brewing in progress...'}
+              {status === 'completed' ? `${useTranslation().t('brewed')}${new Date().toLocaleDateString()}` : useTranslation().t('brewingInProgress')}
             </p>
           </div>
           {status === 'completed' && (
@@ -47,7 +48,7 @@ const Dashboard = () => {
               onClick={() => { reset(); setTimeout(() => startBrewing(brandName), 100); }}
               className="bg-primary text-primary-foreground px-5 py-2 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              Re-Brew
+              {useTranslation().t('reBrew')}
             </button>
           )}
         </header>
