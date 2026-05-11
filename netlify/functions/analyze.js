@@ -24,6 +24,16 @@ exports.handler = async function(event) {
     });
 
     const data = await response.json();
+
+    // Zwróć wszystko do debugowania
+    if (!data.content || !data.content[0]) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: "No content", raw: data })
+      };
+    }
+
     const text = data.content[0].text.trim().replace(/```json|```/g, '').trim();
     const result = JSON.parse(text);
 
