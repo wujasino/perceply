@@ -42,6 +42,7 @@ const Login = () => {
         localStorage.removeItem('rememberEmail');
       }
       navigate('/dashboard');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Błąd logowania');
     } finally {

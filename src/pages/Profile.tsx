@@ -2,18 +2,41 @@ import { motion } from 'framer-motion';
 import { Coffee, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
-import { pastBrews } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
-// API keys are server-side; remove client-side key management UI
+import { supabase } from '@/lib/supabase';
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [analyses, setAnalyses] = useState<any[]>([]);
+  const [avgScore, setAvgScore] = useState(0);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data } = await supabase
+          .from('analyses')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+          setAnalyses(data);
+          const avg = Math.round(data.reduce((sum, a) => sum + a.trust_score, 0) / data.length);
+          setAvgScore(avg);
+        }
+      }
+    };
+    loadData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-24 pb-20 px-4 max-w-4xl mx-auto">
-        {/* User info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -24,38 +47,38 @@ const Profile = () => {
               <Coffee className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-display text-foreground">Alex Brewer</h1>
-              <p className="text-sm text-muted-foreground">alex@bitbrew.io · Growth Roast Plan</p>
+              <h1 className="text-xl font-display text-foreground">{user?.email || 'Ładowanie...'}</h1>
+              <p className="text-sm text-muted-foreground">BitBrew User</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[hsl(var(--glass-border))]">
             <div className="text-center">
-              <div className="text-2xl font-display text-foreground">{pastBrews.length}</div>
-              <div className="text-xs text-muted-foreground mt-1">{t('total_brews')}</div>
+              <div className="text-2xl font-display text-foreground">{analyses.length}</div>
+              <div className="text-xs text-muted-foreground mt-1">Total Brews</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-display text-primary">84</div>
-              <div className="text-xs text-muted-foreground mt-1">{t('avg_score')}</div>
+              <div className="text-2xl font-display text-primary">{avgScore || '—'}</div>
+              <div className="text-xs text-muted-foreground mt-1">Avg Score</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-display text-foreground">46</div>
-              <div className="text-xs text-muted-foreground mt-1">{t('credits_left')}</div>
+              <div className="text-2xl font-display text-foreground">∞</div>
+              <div className="text-xs text-muted-foreground mt-1">Credits</div>
             </div>
           </div>
         </motion.div>
 
-        {/* API Keys section removed — keys should be managed server-side */}
-
-        {/* Past Brews */}
-        <h2 className="text-lg font-display text-foreground mb-4">{t('past_brews')}</h2>
+        <h2 className="text-lg font-display text-foreground mb-4">Past Brews</h2>
         <div className="space-y-3">
-          {pastBrews.map((brew, i) => (
+          {analyses.length === 0 && (
+            <p className="text-muted-foreground text-sm">Brak analiz — wpisz nazwę marki na stronie głównej.</p>
+          )}
+          {analyses.map((brew, i) => (
             <motion.div
               key={brew.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/dashboard?brand=${encodeURIComponent(brew.brandName)}`)}
+              onClick={() => navigate(`/dashboard?brand=${encodeURIComponent(brew.brand_name)}`)}
               className="glass-card-hover p-5 cursor-pointer flex items-center justify-between"
             >
               <div className="flex items-center gap-4">
@@ -63,15 +86,15 @@ const Profile = () => {
                   <TrendingUp className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-foreground">{brew.brandName}</h3>
+                  <h3 className="text-sm font-medium text-foreground">{brew.brand_name}</h3>
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                     <Clock className="w-3 h-3" />
-                    {new Date(brew.timestamp).toLocaleDateString()}
+                    {new Date(brew.created_at).toLocaleDateString()}
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-display text-primary">{brew.trustScore}</div>
+                <div className="text-lg font-display text-primary">{brew.trust_score}</div>
                 <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Score</div>
               </div>
             </motion.div>
