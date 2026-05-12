@@ -1,19 +1,22 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/locale';
 
 interface BrewingProgressProps {
   progress: number;
   brandName: string;
 }
 
-const stages = [
-  { threshold: 0, label: 'Initializing extraction...' },
-  { threshold: 20, label: 'Querying LLM latent spaces...' },
-  { threshold: 45, label: 'Analyzing brand signal patterns...' },
-  { threshold: 70, label: 'Cross-referencing model outputs...' },
-  { threshold: 90, label: 'Finalizing visibility score...' },
-];
-
 export const BrewingProgress = ({ progress, brandName }: BrewingProgressProps) => {
+  const { t } = useTranslation();
+
+  const stages = [
+    { threshold: 0, label: t('stage_0') },
+    { threshold: 20, label: t('stage_1') },
+    { threshold: 45, label: t('stage_2') },
+    { threshold: 70, label: t('stage_3') },
+    { threshold: 90, label: t('stage_4') },
+  ];
+
   const currentStage = [...stages].reverse().find(s => progress >= s.threshold);
 
   return (
@@ -49,7 +52,7 @@ export const BrewingProgress = ({ progress, brandName }: BrewingProgressProps) =
             transition={{ repeat: Infinity, duration: 2 }}
             className="text-primary font-data text-xs uppercase tracking-[0.2em] mb-1"
           >
-            Brewing
+            {t('brewing_label')}
           </motion.span>
           <span className="text-5xl font-light text-foreground font-data">{progress}%</span>
         </div>
@@ -58,7 +61,14 @@ export const BrewingProgress = ({ progress, brandName }: BrewingProgressProps) =
       <div className="text-center space-y-2">
         <p className="text-muted-foreground text-sm">{currentStage?.label}</p>
         <p className="text-muted-foreground/50 text-xs">
-          Analyzing <span className="text-primary">{brandName}</span> across 5 foundation models
+          {(() => {
+            const parts = t('analyzing_across').split('{brand}');
+            return (
+              <>
+                {parts[0]} <span className="text-primary">{brandName}</span> {parts[1]}
+              </>
+            );
+          })()}
         </p>
       </div>
 

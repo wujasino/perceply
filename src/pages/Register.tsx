@@ -4,12 +4,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/lib/locale';
-import { signInWithGoogle } from '@/lib/googleAuth';
-import { LogIn } from 'lucide-react';
-import { setAuthUser } from '@/lib/auth';
-import { useEffect } from 'react';
+import { registerUser } from '@/lib/auth';
 
 const Register = () => {
   const { t } = useTranslation();
@@ -17,47 +13,41 @@ const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [remember, setRemember] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (password !== confirm) {
-      alert('Passwords do not match');
+      setError(t('passwords_no_match'));
       return;
     }
-    // placeholder: implement registration
-    console.log('register', { email, password });
-    navigate('/dashboard');
-  };
-
-  const handleGoogle = async () => {
+    setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      console.log('google user', user);
-      // Create local demo account and navigate
-      setAuthUser({ email: user.email || '', name: user.name, provider: 'google' });
-      sessionStorage.setItem('lastGoogleUser', JSON.stringify(user));
-      navigate('/dashboard');
+      await registerUser(email, password);
+      setSuccess(true);
     } catch (err: any) {
-      console.error(err);
-      alert(err?.message || 'Google sign-in failed. Set VITE_GOOGLE_CLIENT_ID.');
+      setError(err.message || 'Błąd rejestracji');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Prefill if coming from Google flow
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem('lastGoogleUser');
-      if (raw) {
-        const g = JSON.parse(raw);
-        if (g?.email) setEmail(g.email);
-        // if google user present, hide password fields (skip password)
-        // we'll keep remember unchecked by default
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  if (success) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-md mx-auto">
+          <div className="glass-card p-8 mt-12 text-center">
+            <h2 className="text-2xl font-display mb-4">Sprawdź email</h2>
+            <p className="text-muted-foreground">Wysłaliśmy link potwierdzający na <strong>{email}</strong>. Kliknij w link żeby aktywować konto.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,6 +55,7 @@ const Register = () => {
       <div className="pt-20 px-4 sm:px-6 lg:px-8 max-w-md mx-auto">
         <div className="glass-card p-8 mt-12">
           <h2 className="text-2xl font-display mb-4">{t('register')}</h2>
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col gap-1">
               <Label>{t('email')}</Label>
@@ -78,17 +69,9 @@ const Register = () => {
               <Label>{t('confirmPassword')}</Label>
               <Input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} />
             </div>
-            <div className="flex items-center gap-2">
-              <Checkbox checked={remember} onCheckedChange={(v) => setRemember(Boolean(v))} />
-              <Label className="!mb-0">{t('remember')}</Label>
-            </div>
-            <Button type="submit" className="w-full">{t('submit')}</Button>
-            <div className="mt-2">
-              <Button type="button" variant="outline" size="sm" className="w-full flex items-center justify-center gap-2" onClick={handleGoogle}>
-                <LogIn className="w-4 h-4" />
-                Sign in with Google
-              </Button>
-            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Rejestracja...' : t('submit')}
+            </Button>
           </form>
         </div>
       </div>

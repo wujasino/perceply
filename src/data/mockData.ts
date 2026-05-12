@@ -100,7 +100,7 @@ export const pastBrews = [
 export const pricingTiers: PricingTier[] = [
   {
     name: 'Solo Brew',
-    price: '$29',
+    price: '99 zł',
     period: '/month',
     description: 'For indie founders and solo marketers tracking their brand.',
     features: [
@@ -113,7 +113,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Growth Roast',
-    price: '$99',
+    price: '349 zł',
     period: '/month',
     description: 'For growing teams who need deeper competitive insights.',
     features: [

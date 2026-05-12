@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/locale';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
   ResponsiveContainer,
@@ -9,6 +10,7 @@ interface SentimentChartProps {
 }
 
 export const SentimentChart = ({ data }: SentimentChartProps) => {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -16,7 +18,7 @@ export const SentimentChart = ({ data }: SentimentChartProps) => {
       transition={{ duration: 0.5, delay: 0.2 }}
       className="glass-card p-8"
     >
-      <h3 className="text-sm font-medium mb-6 text-muted-foreground">Sentiment Trend</h3>
+      <h3 className="text-sm font-medium mb-6 text-muted-foreground">{t('sentiment_trend')}</h3>
       <div className="h-[250px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { pastBrews } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
-import { getKey, saveKey, deleteKey, maskKey } from '@/lib/apiKeys';
+// API keys are server-side; remove client-side key management UI
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -31,36 +31,23 @@ const Profile = () => {
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[hsl(var(--glass-border))]">
             <div className="text-center">
               <div className="text-2xl font-display text-foreground">{pastBrews.length}</div>
-              <div className="text-xs text-muted-foreground mt-1">Total Brews</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('total_brews')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-display text-primary">84</div>
-              <div className="text-xs text-muted-foreground mt-1">Avg Score</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('avg_score')}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-display text-foreground">46</div>
-              <div className="text-xs text-muted-foreground mt-1">Credits Left</div>
+              <div className="text-xs text-muted-foreground mt-1">{t('credits_left')}</div>
             </div>
           </div>
         </motion.div>
 
-        {/* API Keys */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card p-6 mb-8"
-        >
-          <h2 className="text-lg font-display text-foreground mb-3">API Keys</h2>
-          <p className="text-sm text-muted-foreground mb-4">Wklej klucze API dla zewnętrznych modeli (np. Laude, Claude). Klucze są przechowywane lokalnie w przeglądarce.</p>
-
-          <div className="grid gap-4">
-            <ApiKeyManager provider="Laude" />
-            <ApiKeyManager provider="Claude" />
-          </div>
-        </motion.div>
+        {/* API Keys section removed — keys should be managed server-side */}
 
         {/* Past Brews */}
-        <h2 className="text-lg font-display text-foreground mb-4">Past Brews</h2>
+        <h2 className="text-lg font-display text-foreground mb-4">{t('past_brews')}</h2>
         <div className="space-y-3">
           {pastBrews.map((brew, i) => (
             <motion.div
@@ -96,60 +83,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-function ApiKeyManager({ provider }: { provider: string }) {
-  const [input, setInput] = useState('');
-  const [saved, setSaved] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSaved(getKey(provider));
-  }, [provider]);
-
-  function handleSave() {
-    if (!input) return;
-    saveKey(provider, input.trim());
-    setSaved(getKey(provider));
-    setInput('');
-    // optional: show toast
-  }
-
-  function handleDelete() {
-    deleteKey(provider);
-    setSaved(null);
-  }
-
-  return (
-    <div className="grid gap-3">
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`${provider} API Key`}
-          className="input input-bordered flex-1"
-          aria-label={`${provider} api key input`}
-        />
-        <button onClick={handleSave} className="btn btn-primary">Save</button>
-      </div>
-
-      {saved ? (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div>
-            <div className="font-medium text-foreground">{provider}</div>
-            <div className="text-xs">{maskKey(saved)}</div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigator.clipboard.writeText(saved)}
-              className="btn btn-ghost btn-sm"
-            >
-              Copy
-            </button>
-            <button onClick={handleDelete} className="btn btn-destructive btn-sm">Delete</button>
-          </div>
-        </div>
-      ) : (
-        <div className="text-xs text-muted-foreground">No key saved for {provider}.</div>
-      )}
-    </div>
-  );
-}

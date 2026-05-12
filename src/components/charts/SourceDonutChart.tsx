@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/locale';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface SourceDonutChartProps {
@@ -6,6 +7,7 @@ interface SourceDonutChartProps {
 }
 
 export const SourceDonutChart = ({ data }: SourceDonutChartProps) => {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -13,7 +15,7 @@ export const SourceDonutChart = ({ data }: SourceDonutChartProps) => {
       transition={{ duration: 0.5, delay: 0.3 }}
       className="glass-card p-8"
     >
-      <h3 className="text-sm font-medium mb-6 text-muted-foreground">Source Breakdown</h3>
+      <h3 className="text-sm font-medium mb-6 text-muted-foreground">{t('source_breakdown')}</h3>
       <div className="h-[250px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -38,7 +40,7 @@ export const SourceDonutChart = ({ data }: SourceDonutChartProps) => {
                 borderRadius: '8px',
                 color: 'hsl(240, 5%, 96%)',
               }}
-              formatter={(value: number) => [`${value}%`, 'Share']}
+              formatter={(value: number) => [`${value}%`, t('share_label')]}
             />
           </PieChart>
         </ResponsiveContainer>

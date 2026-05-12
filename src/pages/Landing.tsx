@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Zap, Eye, BarChart3, Shield, ArrowRight } from 'lucide-react';
+import { Search, Zap, Eye, BarChart3, Shield, ArrowRight, Cpu, Check } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { useTranslation } from '@/lib/locale';
 
@@ -54,14 +54,14 @@ const Landing = () => {
             transition={{ duration: 0.6 }}
           >
             <span className="inline-block px-3 py-1 text-xs text-primary border border-primary/20 rounded-lg bg-primary/5 mb-6 font-data uppercase tracking-wider">
-              AI Visibility Platform
+              {t('hero_tag')}
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display text-foreground mb-6 leading-[1.1]">
-              How does AI see{' '}
-              <span className="text-gradient-amber">your brand?</span>
+              {t('hero_heading_prefix')}
+              <span className="text-gradient-amber">{t('hero_heading_highlight')}</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-              BitBrew audits how foundation models like GPT-4, Claude, and Gemini perceive, describe, and recommend your brand — giving you the visibility score that matters in the age of AI search.
+              {t('hero_paragraph')}
             </p>
           </motion.div>
 
@@ -89,6 +89,59 @@ const Landing = () => {
             </button>
           </motion.form>
 
+          <div className="max-w-xl mx-auto mt-4 flex items-center justify-center gap-3 text-sm text-muted-foreground">
+            <div className="text-xs text-muted-foreground/80 mr-2">{t('trustedBy')}</div>
+            <div className="text-gradient-amber font-medium">{t('trustedCount')}</div>
+            <div className="ml-4 flex -space-x-2 items-center">
+              {[
+                { t: 'AB', bg: '#FFB703' },
+                { t: 'CD', bg: '#FB8500' },
+                { t: 'EF', bg: '#219EBC' },
+                { t: 'GH', bg: '#8ECAE6' },
+                { t: 'IJ', bg: '#023047' }
+              ].map((a, i) => (
+                <div
+                  key={i}
+                  aria-hidden
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white border border-[hsl(var(--glass-border))]"
+                  style={{ backgroundColor: a.bg }}
+                >
+                  {a.t}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* How it works */}
+          <section className="mt-12 max-w-4xl mx-auto">
+            <h3 className="text-center text-sm text-muted-foreground mb-6">{t('howTitle')}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <Search className="w-5 h-5 text-primary" />
+                </div>
+                <div className="font-medium text-foreground">{t('how_step1_title')}</div>
+                <div className="text-xs text-muted-foreground mt-1">{t('how_step1_desc')}</div>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <Cpu className="w-5 h-5 text-primary" />
+                </div>
+                <div className="font-medium text-foreground">{t('how_step2_title')}</div>
+                <div className="text-xs text-muted-foreground mt-1">{t('how_step2_desc')}</div>
+              </div>
+
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                  <Check className="w-5 h-5 text-primary" />
+                </div>
+                <div className="font-medium text-foreground">{t('how_step3_title')}</div>
+                <div className="text-xs text-muted-foreground mt-1">{t('how_step3_desc')}</div>
+              </div>
+            </div>
+          </section>
+
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -109,7 +162,7 @@ const Landing = () => {
             viewport={{ once: true }}
             className="text-2xl font-display text-center text-foreground mb-12"
           >
-            Why AI Visibility matters
+            {t('whyTitle')}
           </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {features.map((feature, i) => (
@@ -122,8 +175,8 @@ const Landing = () => {
                 className="glass-card-hover p-6"
               >
                 <feature.icon className="w-8 h-8 text-primary mb-4" />
-                <h3 className="text-base font-medium text-foreground mb-2">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+                <h3 className="text-base font-medium text-foreground mb-2">{t(`feature_${i + 1}_title`)}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{t(`feature_${i + 1}_desc`)}</p>
               </motion.div>
             ))}
           </div>
@@ -147,11 +200,11 @@ const Landing = () => {
       {/* Footer */}
       <footer className="border-t border-[hsl(var(--glass-border))] py-8 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">© 2024 BitBrew. All rights reserved.</p>
+          <p className="text-xs text-muted-foreground">{t('copyright')}</p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-            <a href="#" className="hover:text-foreground transition-colors">Docs</a>
+            <a href="#" className="hover:text-foreground transition-colors">{t('privacy')}</a>
+            <a href="#" className="hover:text-foreground transition-colors">{t('terms')}</a>
+            <a href="#" className="hover:text-foreground transition-colors">{t('docs')}</a>
           </div>
         </div>
       </footer>

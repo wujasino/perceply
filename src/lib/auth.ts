@@ -1,31 +1,40 @@
-type AuthUser = {
+import { supabase } from './supabase';
+
+export type AuthUser = {
+  id: string;
   email: string;
   name?: string;
-  provider?: 'local' | 'google';
 };
 
-const AUTH_KEY = 'authUser';
-
-export function setAuthUser(user: AuthUser) {
-  localStorage.setItem(AUTH_KEY, JSON.stringify(user));
+export async function registerUser(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
 }
 
-export function getAuthUser(): AuthUser | null {
-  const v = localStorage.getItem(AUTH_KEY);
-  if (!v) return null;
-  try {
-    return JSON.parse(v) as AuthUser;
-  } catch {
-    return null;
-  }
+export async function loginUser(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
 }
 
-export function isAuthenticated(): boolean {
-  return getAuthUser() !== null;
+export async function getAuthUser(): Promise<AuthUser | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  return {
+    id: user.id,
+    email: user.email || '',
+    name: user.user_metadata?.name
+  };
 }
 
-export function logout() {
-  localStorage.removeItem(AUTH_KEY);
+export async function isAuthenticated(): Promise<boolean> {
+  const user = await getAuthUser();
+  return user !== null;
 }
 
-export default { setAuthUser, getAuthUser, isAuthenticated, logout };
+export async function logout() {
+  await supabase.auth.signOut();
+}
+
+export default { registerUser, loginUser, getAuthUser, isAuthenticated, logout };

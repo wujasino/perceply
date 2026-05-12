@@ -2,18 +2,20 @@ import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { pricingTiers } from '@/data/mockData';
+import { useTranslation } from '@/lib/locale';
 
 const Pricing = () => {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="pt-28 pb-20 px-4 max-w-5xl mx-auto">
         <div className="text-center mb-14">
           <h1 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-            Simple, transparent pricing
+            {t('pricing_title')}
           </h1>
           <p className="text-muted-foreground text-sm max-w-lg mx-auto">
-            Start free, scale as your brand monitoring needs grow. No hidden fees.
+            {t('pricing_subtitle')}
           </p>
         </div>
 
@@ -30,7 +32,7 @@ const Pricing = () => {
             >
               {tier.highlighted && (
                 <span className="text-[10px] text-primary uppercase tracking-widest font-data mb-3">
-                  Most Popular
+                  {t('most_popular')}
                 </span>
               )}
               <h3 className="text-lg font-medium text-foreground">{tier.name}</h3>
@@ -54,7 +56,7 @@ const Pricing = () => {
                     : 'bg-secondary text-secondary-foreground'
                 }`}
               >
-                {tier.price === 'Custom' ? 'Contact Sales' : 'Get Started'}
+                {tier.price === 'Custom' ? t('contact_sales') : t('get_started')}
               </button>
             </motion.div>
           ))}

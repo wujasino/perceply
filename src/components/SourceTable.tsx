@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/locale';
 import { SourceResult } from '@/types/analysis';
 
 interface SourceTableProps {
@@ -6,6 +7,7 @@ interface SourceTableProps {
 }
 
 export const SourceTable = ({ sources }: SourceTableProps) => {
+  const { t } = useTranslation();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -16,10 +18,10 @@ export const SourceTable = ({ sources }: SourceTableProps) => {
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-[hsl(45,100%,50%,0.05)]">
-            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider">Source Model</th>
-            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider">Perception</th>
-            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">Top Association</th>
-            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider text-right">Confidence</th>
+            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider">{t('table_source_model')}</th>
+            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider">{t('table_perception')}</th>
+            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">{t('table_top_association')}</th>
+            <th className="p-4 font-medium text-muted-foreground text-xs uppercase tracking-wider text-right">{t('table_confidence')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[hsl(45,100%,50%,0.05)]">
@@ -32,7 +34,7 @@ export const SourceTable = ({ sources }: SourceTableProps) => {
                   row.sentiment === 'Negative' ? 'bg-red-500/10 text-red-400' :
                   'bg-muted text-muted-foreground'
                 }`}>
-                  {row.sentiment}
+                  {t(`sentiment_${String(row.sentiment || '').toLowerCase()}`) || row.sentiment}
                 </span>
               </td>
               <td className="p-4 text-muted-foreground hidden sm:table-cell">{row.association}</td>
