@@ -4,12 +4,12 @@ import { supabase } from '@/lib/supabase';
 import { useTranslation } from '@/lib/locale';
 
 export function useBrewing() {
+  const { t } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<'idle' | 'brewing' | 'completed'>('idle');
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
   const startBrewing = useCallback(async (brandName: string) => {
-    const { t } = useTranslation();
 
     // Check auth first: if user is not authenticated, enforce guest credits
     try {
