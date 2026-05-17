@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 type Locale = 'en' | 'pl';
 
@@ -67,10 +67,6 @@ const translations: Record<Locale, Record<string, string>> = {
     hero_heading_highlight: 'your brand?',
     hero_paragraph: 'BitBrew audits how foundation models like GPT-4, Claude, and Gemini perceive, describe, and recommend your brand — giving you the visibility score that matters in the age of AI search.',
     // Dashboard / Panel
-    back: 'Back',
-    auditSuffix: ' / AI Audit',
-    brewed: 'Brewed:',
-    brewingInProgress: 'Brewing in progress...',
     overallVisibility: 'Overall Visibility Score',
     score_excellent: 'Excellent',
     score_high: 'High Fidelity',
@@ -142,9 +138,10 @@ const translations: Record<Locale, Record<string, string>> = {
     email_placeholder: 'you@company.com',
     passwords_no_match: 'Passwords do not match',
     google_signin_failed: 'Google sign-in failed. Set VITE_GOOGLE_CLIENT_ID.',
-    privacy: 'Privacy',
-    terms: 'Terms',
+    privacy: 'Privacy Policy',
+    terms: 'Terms of Service',
     docs: 'Docs',
+    newsletter: 'Newsletter Terms',
     no_credits_guest: 'You have no credits left. Register to get more.',
     logout: 'Logout',
   },
@@ -212,10 +209,6 @@ const translations: Record<Locale, Record<string, string>> = {
     hero_heading_highlight: 'Twoją markę?',
     hero_paragraph: 'BitBrew sprawdza, jak modele podstawowe (GPT-4, Claude, Gemini) postrzegają i opisują Twoją markę — dostarczając wynik widoczności istotny w erze wyszukiwania opartego na AI.',
     // Dashboard / Panel
-    back: 'Wróć',
-    auditSuffix: '/ Audyt AI',
-    brewed: 'Sparzono: ',
-    brewingInProgress: 'Trwa parzenie...',
     overallVisibility: 'Wynik widoczności',
     score_excellent: 'Doskonały',
     score_high: 'Wysoka rzetelność',
@@ -287,9 +280,10 @@ const translations: Record<Locale, Record<string, string>> = {
     email_placeholder: 'ty@firma.pl',
     passwords_no_match: 'Hasła nie są identyczne',
     google_signin_failed: 'Logowanie Google nie powiodło się. Ustaw VITE_GOOGLE_CLIENT_ID.',
-    privacy: 'Prywatność',
+    privacy: 'Polityka prywatności',
     terms: 'Regulamin',
     docs: 'Dokumentacja',
+    newsletter: 'Regulamin newslettera',
     no_credits_guest: 'Brak kredytów. Zarejestruj się, aby otrzymać więcej.',
     logout: 'Wyloguj',
   },

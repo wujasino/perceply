@@ -185,9 +185,9 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">{t('copyright')}</p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">{t('privacy')}</a>
-            <a href="#" className="hover:text-foreground transition-colors">{t('terms')}</a>
-            <a href="#" className="hover:text-foreground transition-colors">{t('docs')}</a>
+            <a href="/polityka-prywatnosci-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('privacy')}</a>
+            <a href="/regulamin-sklepu-internetowego-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('terms')}</a>
+            <a href="/regulamin-newslettera-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('newsletter')}</a>
           </div>
         </div>
       </footer>
