@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Zap, Eye, BarChart3, Shield, ArrowRight, Cpu, Check } from 'lucide-react';
+import { Search, Zap, Eye, BarChart3, Shield, ArrowRight } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { useTranslation } from '@/lib/locale';
 
@@ -89,26 +89,9 @@ const Landing = () => {
             </button>
           </motion.form>
 
-          <div className="max-w-xl mx-auto mt-4 flex items-center justify-center gap-3 text-sm text-muted-foreground">
-            <div className="text-xs text-muted-foreground/80 mr-2">{t('trustedBy')}</div>
-            <div className="text-gradient-amber font-medium">{t('trustedCount')}</div>
-            <div className="ml-4 flex -space-x-2 items-center">
-              {[
-                { t: 'AB', bg: '#FFB703' },
-                { t: 'CD', bg: '#FB8500' },
-                { t: 'EF', bg: '#219EBC' },
-                { t: 'GH', bg: '#8ECAE6' },
-                { t: 'IJ', bg: '#023047' }
-              ].map((a, i) => (
-                <div
-                  key={i}
-                  aria-hidden
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold text-white border border-[hsl(var(--glass-border))]"
-                  style={{ backgroundColor: a.bg }}
-                >
-                  {a.t}
-                </div>
-              ))}
+          <div className="max-w-xl mx-auto mt-4 flex items-center justify-center">
+            <div className="text-xs text-muted-foreground/80">
+              Pierwsze 3 analizy za darmo — bez karty kredytowej
             </div>
           </div>
 
@@ -117,24 +100,24 @@ const Landing = () => {
             <h3 className="text-center text-sm text-muted-foreground mb-6">{t('howTitle')}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col items-center text-center p-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Search className="w-5 h-5 text-primary" />
+                <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 text-2xl font-display shadow-lg shadow-primary/20">
+                  1
                 </div>
                 <div className="font-medium text-foreground">{t('how_step1_title')}</div>
                 <div className="text-xs text-muted-foreground mt-1">{t('how_step1_desc')}</div>
               </div>
 
               <div className="flex flex-col items-center text-center p-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Cpu className="w-5 h-5 text-primary" />
+                <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 text-2xl font-display shadow-lg shadow-primary/20">
+                  2
                 </div>
                 <div className="font-medium text-foreground">{t('how_step2_title')}</div>
                 <div className="text-xs text-muted-foreground mt-1">{t('how_step2_desc')}</div>
               </div>
 
               <div className="flex flex-col items-center text-center p-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <Check className="w-5 h-5 text-primary" />
+                <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center mb-3 text-2xl font-display shadow-lg shadow-primary/20">
+                  3
                 </div>
                 <div className="font-medium text-foreground">{t('how_step3_title')}</div>
                 <div className="text-xs text-muted-foreground mt-1">{t('how_step3_desc')}</div>

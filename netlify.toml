@@ -5,3 +5,14 @@
 [build.environment]
   NPM_FLAGS = "--legacy-peer-deps"
   NODE_VERSION = "20"
+
+[dev]
+  command = "npm run dev"
+  targetPort = 4000
+  port = 8888
+  publish = "dist"
+  framework = "#custom"
+  autoLaunch = false
+
+[functions]
+  node_bundler = "esbuild"

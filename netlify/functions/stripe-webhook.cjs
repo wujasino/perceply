@@ -6,7 +6,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-exports.handler = async function(event) {
+module.exports.handler = async (event) => {
   const sig = event.headers['stripe-signature'];
   let stripeEvent;
 

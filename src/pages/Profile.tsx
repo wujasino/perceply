@@ -1,8 +1,6 @@
 import { motion } from 'framer-motion';
 import { Coffee, Clock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { logout } from '@/lib/auth';
 import { useTranslation } from '@/lib/locale';
 import { Navbar } from '@/components/layout/Navbar';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +18,13 @@ interface UserProfile {
   email?: string | null;
 }
 
+const PLAN_LABELS: Record<string, string> = {
+  free: 'Free',
+  solo: 'Solo Brew',
+  growth: 'Growth Roast',
+  enterprise: 'Enterprise Roast',
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -27,6 +32,7 @@ const Profile = () => {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [avgScore, setAvgScore] = useState(0);
   const [guestCredits, setGuestCredits] = useState<number | null>(null);
+  const [plan, setPlan] = useState<string>('free');
 
   useEffect(() => {
     const loadData = async () => {
@@ -44,6 +50,13 @@ const Profile = () => {
       }
 
       if (user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', user.id)
+          .single();
+        if (profileData?.plan) setPlan(profileData.plan);
+
         const { data } = await supabase
           .from('analyses')
           .select('*')
@@ -51,8 +64,15 @@ const Profile = () => {
           .order('created_at', { ascending: false });
 
         if (data && data.length > 0) {
-          setAnalyses(data);
-          const avg = Math.round(data.reduce((sum, a) => sum + a.trust_score, 0) / data.length);
+          const seen = new Set<string>();
+          const unique = data.filter((a) => {
+            const key = a.brand_name.trim().toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setAnalyses(unique);
+          const avg = Math.round(unique.reduce((sum, a) => sum + a.trust_score, 0) / unique.length);
           setAvgScore(avg);
         }
       }
@@ -77,21 +97,6 @@ const Profile = () => {
               <h1 className="text-xl font-display text-foreground">{user?.email || 'Ładowanie...'}</h1>
               <p className="text-sm text-muted-foreground">BitBrew User</p>
             </div>
-            {user && (
-              <div className="ml-auto">
-                <Button variant="outline" size="sm" onClick={async () => {
-                  try {
-                    await logout();
-                    // refresh page state
-                    window.location.href = '/';
-                  } catch (err) {
-                    console.error('Logout failed', err);
-                  }
-                }}>
-                  {t('logout')}
-                </Button>
-              </div>
-            )}
           </div>
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-[hsl(var(--glass-border))]">
             <div className="text-center">
@@ -103,8 +108,12 @@ const Profile = () => {
               <div className="text-xs text-muted-foreground mt-1">{t('avg_score')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-display text-foreground">{user ? '∞' : (guestCredits ?? 0)}</div>
-              <div className="text-xs text-muted-foreground mt-1">{t('credits_left')}</div>
+              <div className="text-2xl font-display text-foreground">
+                {user ? (PLAN_LABELS[plan] ?? 'Free') : (guestCredits ?? 0)}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {user ? t('plan_label') : t('credits_left')}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -120,8 +129,8 @@ const Profile = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              onClick={() => navigate(`/dashboard?brand=${encodeURIComponent(brew.brand_name)}`)}
-              className="glass-card-hover p-5 cursor-pointer flex items-center justify-between"
+              onClick={() => navigate(`/dashboard?id=${encodeURIComponent(brew.id)}`)}
+              className="glass-card-hover p-5 cursor-pointer flex items-center justify-between hover:!border-primary/40 transition-colors"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
