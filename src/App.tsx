@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PdfViewer from "./pages/PdfViewer";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,9 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/polityka-prywatnosci" element={<PdfViewer title="Polityka prywatności" file="/polityka-prywatnosci-pl.pdf" />} />
+          <Route path="/regulamin" element={<PdfViewer title="Regulamin sklepu internetowego" file="/regulamin-sklepu-internetowego-pl.pdf" />} />
+          <Route path="/regulamin-newslettera" element={<PdfViewer title="Regulamin newslettera" file="/regulamin-newslettera-pl.pdf" />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

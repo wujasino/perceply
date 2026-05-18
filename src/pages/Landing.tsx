@@ -155,7 +155,7 @@ const Landing = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="glass-card-hover p-6"
+                className="glass-card-hover p-6 !bg-card !border-primary/40 shadow-lg shadow-primary/5"
               >
                 <feature.icon className="w-8 h-8 text-primary mb-4" />
                 <h3 className="text-base font-medium text-foreground mb-2">{t(`feature_${i + 1}_title`)}</h3>
@@ -185,9 +185,9 @@ const Landing = () => {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">{t('copyright')}</p>
           <div className="flex gap-6 text-xs text-muted-foreground">
-            <a href="/polityka-prywatnosci-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('privacy')}</a>
-            <a href="/regulamin-sklepu-internetowego-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('terms')}</a>
-            <a href="/regulamin-newslettera-pl.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">{t('newsletter')}</a>
+            <a href="/polityka-prywatnosci" className="hover:text-foreground transition-colors">{t('privacy')}</a>
+            <a href="/regulamin" className="hover:text-foreground transition-colors">{t('terms')}</a>
+            <a href="/regulamin-newslettera" className="hover:text-foreground transition-colors">{t('newsletter')}</a>
           </div>
         </div>
       </footer>

@@ -194,23 +194,13 @@ const Register = () => {
 
           <p className="text-[11px] text-muted-foreground text-center mt-5">
             {t('signup_legal_prefix')}{' '}
-            <a
-              href="/regulamin-sklepu-internetowego-pl.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
+            <Link to="/regulamin" target="_blank" className="text-primary hover:underline">
               {t('terms')}
-            </a>{' '}
+            </Link>{' '}
             {t('signup_legal_and')}{' '}
-            <a
-              href="/polityka-prywatnosci-pl.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
+            <Link to="/polityka-prywatnosci" target="_blank" className="text-primary hover:underline">
               {t('privacy_policy')}
-            </a>
+            </Link>
           </p>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
