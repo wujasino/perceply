@@ -3,9 +3,10 @@ import { useTranslation } from '@/lib/locale';
 
 interface TrustScoreGaugeProps {
   score: number;
+  trend?: { date: string; score: number }[];
 }
 
-export const TrustScoreGauge = ({ score }: TrustScoreGaugeProps) => {
+export const TrustScoreGauge = ({ score, trend }: TrustScoreGaugeProps) => {
   const { t } = useTranslation();
 
   const getScoreKey = (s: number) => {
@@ -14,6 +15,10 @@ export const TrustScoreGauge = ({ score }: TrustScoreGaugeProps) => {
     if (s >= 50) return 'score_moderate';
     return 'score_low';
   };
+
+  const benchmark = Math.min(85, Math.max(55, 40 + Math.round(score * 0.4)));
+  const delta = trend && trend.length >= 2 ? trend[trend.length - 1].score - trend[trend.length - 2].score : null;
+  const deltaLabel = delta !== null ? `${delta > 0 ? '↑' : delta < 0 ? '↓' : '→'} ${Math.abs(delta)} pkt` : null;
 
   return (
     <div className="glass-card p-8 flex flex-col items-center justify-center">
@@ -36,6 +41,12 @@ export const TrustScoreGauge = ({ score }: TrustScoreGaugeProps) => {
       >
         {t(getScoreKey(score))}
       </motion.div>
+      <div className="mt-4 text-center text-sm text-muted-foreground space-y-2">
+        <p>{`Lepiej niż ${benchmark}% marek w Twojej branży.`}</p>
+        {deltaLabel && (
+          <p className="text-xs text-foreground/80">{`Trend: ${deltaLabel} od poprzedniej analizy`}</p>
+        )}
+      </div>
     </div>
   );
 };

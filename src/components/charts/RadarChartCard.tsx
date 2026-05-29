@@ -8,9 +8,10 @@ import { AnalysisResult } from '@/types/analysis';
 
 interface RadarChartCardProps {
   dimensions: AnalysisResult['dimensions'];
+  timestamp?: string;
 }
 
-export const RadarChartCard = ({ dimensions }: RadarChartCardProps) => {
+export const RadarChartCard = ({ dimensions, timestamp }: RadarChartCardProps) => {
   // Normalize values to 0-100 and round. Accept either 0-1 or 0-100 inputs.
   const normalize = (v: number) => {
     if (typeof v !== 'number' || isNaN(v)) return 50;
@@ -49,14 +50,14 @@ export const RadarChartCard = ({ dimensions }: RadarChartCardProps) => {
 
     let tx = x;
     let ty = y;
-    if ((key === 'sentiment' || key === 'recency') && typeof cx === 'number' && typeof cy === 'number') {
-      const factor = 1.12;
+    if (typeof cx === 'number' && typeof cy === 'number') {
+      const factor = 0.94;
       tx = cx + (x - cx) * factor;
       ty = cy + (y - cy) * factor;
     }
 
     if (key === 'sentiment') {
-      tx += 10;
+      tx += 8;
     }
 
     return (
@@ -74,6 +75,8 @@ export const RadarChartCard = ({ dimensions }: RadarChartCardProps) => {
     );
   };
 
+  const formattedDate = timestamp ? new Date(timestamp).toLocaleDateString() : '';
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -81,10 +84,24 @@ export const RadarChartCard = ({ dimensions }: RadarChartCardProps) => {
       transition={{ duration: 0.5, delay: 0.1 }}
       className="glass-card p-8"
     >
-      <h3 className="text-sm font-medium mb-6 text-muted-foreground">{t('aiPerceptionDimensions')}</h3>
-      <div className="h-[300px] w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <h3 className="text-sm font-medium text-muted-foreground">{t('aiPerceptionDimensions')}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t('radar_chart_description')}</p>
+        </div>
+        {formattedDate && (
+          <span className="text-xs text-muted-foreground">{t('analysis_date_collected')} {formattedDate}</span>
+        )}
+      </div>
+      <div className="h-[380px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+          <RadarChart
+            cx="50%"
+            cy="50%"
+            outerRadius="90%"
+            data={data}
+            margin={{ top: 10, right: 0, bottom: 10, left: 0 }}
+          >
             <PolarGrid stroke="hsl(240, 4%, 22%)" />
             <PolarAngleAxis dataKey="subject" tick={renderTick} />
             <Radar
@@ -92,11 +109,11 @@ export const RadarChartCard = ({ dimensions }: RadarChartCardProps) => {
               dataKey="value"
               stroke="#FFBF00"
               fill="#FFBF00"
-              fillOpacity={0.22}
+              fillOpacity={0.34}
               strokeWidth={3}
               strokeOpacity={1}
-              dot={{ r: 3, fill: '#FFBF00' }}
-              style={{ filter: 'drop-shadow(0 6px 12px rgba(255,191,0,0.14))' }}
+              dot={{ r: 4, fill: '#FFBF00' }}
+              style={{ filter: 'drop-shadow(0 8px 20px rgba(255,191,0,0.18))' }}
             />
           </RadarChart>
         </ResponsiveContainer>
