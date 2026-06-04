@@ -13,7 +13,7 @@ const getClientIp = (event) => {
   if (forwarded) {
     return forwarded.split(',')[0].trim();
   }
-  return event.headers['x-nf-client-connection-ip'] || event.headers['x-nf-client-connection-ip'] || 'unknown';
+  return event.headers['x-nf-client-connection-ip'] || 'unknown';
 };
 
 const now = () => Date.now();
@@ -55,6 +55,46 @@ const createAdminClient = () => {
   return createClient(supabaseUrl, supabaseServiceKey);
 };
 
+// --- RAG: embedding zapytania przez Voyage (input_type "query") ---
+const embedQuery = async (text) => {
+  const res = await fetch('https://api.voyageai.com/v1/embeddings', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env.VOYAGE_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'voyage-3.5',
+      input: text,
+      input_type: 'query'
+    })
+  });
+  if (!res.ok) throw new Error(`Voyage: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.data[0].embedding;
+};
+
+// --- RAG: pobranie kontekstu marki dla danego usera (service_role -> user_id jawnie) ---
+const getBrandContext = async (supabaseAdmin, userId, brandName, query) => {
+  try {
+    const queryEmbedding = await embedQuery(query);
+    const { data, error } = await supabaseAdmin.rpc('match_brand_knowledge', {
+      query_embedding: JSON.stringify(queryEmbedding),
+      p_user_id: userId,
+      match_count: 5,
+      filter_brand: brandName
+    });
+    if (error) {
+      console.warn('match_brand_knowledge error', error);
+      return '';
+    }
+    return (data || []).map((r) => r.content).join('\n\n---\n\n');
+  } catch (err) {
+    console.warn('getBrandContext failed', err);
+    return '';
+  }
+};
+
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -63,6 +103,9 @@ export const handler = async (event) => {
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
   const token = authHeader.toString().replace(/^Bearer\s+/i, '');
   const ip = getClientIp(event);
+
+  let authedUser = null;
+  let supabaseAdmin = null;
 
   if (!token) {
     if (shouldRateLimit(`ip:${ip}`)) {
@@ -80,7 +123,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const supabaseAdmin = createAdminClient();
+    supabaseAdmin = createAdminClient();
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       return {
@@ -89,6 +132,7 @@ export const handler = async (event) => {
         body: JSON.stringify({ error: 'Unauthorized' })
       };
     }
+    authedUser = user;
 
     if (shouldRateLimit(`user:${user.id}`)) {
       return {
@@ -112,6 +156,20 @@ export const handler = async (event) => {
 
     if (process.env.ANTHROPIC_API_KEY) {
       try {
+        // RAG: pobierz zapisaną wiedzę o tej marce dla zalogowanego usera
+        const brandContext = await getBrandContext(
+          supabaseAdmin,
+          authedUser.id,
+          target,
+          `Analiza widoczności marki ${target}`
+        );
+
+        const systemPrompt = `You are a brand visibility analyst. Below is verified, user-provided knowledge about the brand and its competitors. Treat it as the authoritative context and prefer it over your general knowledge. If the section is empty or irrelevant, fall back to general knowledge and note that.
+
+<brand_context>
+${brandContext || '(no stored knowledge for this brand)'}
+</brand_context>`;
+
         const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
@@ -122,9 +180,10 @@ export const handler = async (event) => {
           body: JSON.stringify({
             model: 'claude-sonnet-4-5',
             max_tokens: 1000,
+            system: systemPrompt,
             messages: [{
               role: 'user',
-              content: `Analyze this website or brand: ${target}. Rate it from 0-100 on these 5 dimensions (authority, sentiment, recency, mentions, accuracy) and provide a trustScore. Respond ONLY with a raw JSON object, no markdown, no backticks, just JSON.`
+              content: `Analyze this website or brand: ${target}. Use the brand_context above when relevant. Rate it from 0-100 on these 5 dimensions (authority, sentiment, recency, mentions, accuracy) and provide a trustScore. Respond ONLY with a raw JSON object, no markdown, no backticks, just JSON.`
             }]
           })
         });
