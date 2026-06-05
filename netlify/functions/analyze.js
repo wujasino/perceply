@@ -177,6 +177,11 @@ export const handler = async (event) => {
           `Analiza widoczności marki ${target}`
         );
 
+        console.log('DEBUG context:', {
+          len: brandContext?.length || 0,
+          preview: (brandContext || '').slice(0, 200)
+        });
+
         const systemPrompt = `You are a brand visibility analyst. Below is verified, user-provided knowledge about the brand and its competitors. Treat it as the authoritative context and prefer it over your general knowledge. If the section is empty or irrelevant, fall back to general knowledge and note that.
 
 <brand_context>
