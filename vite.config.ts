@@ -1,7 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
+// lovable-tagger is optional in this project. Try to require it at runtime
+// so the config can load even if the package or types are missing.
+let componentTagger: any = undefined;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  componentTagger = require('lovable-tagger').componentTagger;
+} catch (e) {
+  // ignore if module not found
+}
 
 // Simple dev middleware to run Netlify-style functions from netlify/functions
 function netlifyFunctionsPlugin() {
@@ -66,7 +74,11 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger(), mode === "development" && netlifyFunctionsPlugin()].filter(Boolean),
+  plugins: [
+    react(),
+    mode === "development" && componentTagger && componentTagger(),
+    mode === "development" && netlifyFunctionsPlugin()
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
