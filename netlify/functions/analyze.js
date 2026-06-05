@@ -162,6 +162,11 @@ export const handler = async (event) => {
     const target = String(url || '').trim() || 'unknown brand';
     let parsed = null;
 
+    console.log('DEBUG analyze:', {
+      hasAnthropic: !!process.env.ANTHROPIC_API_KEY,
+      hasVoyage: !!process.env.VOYAGE_API_KEY,
+    });
+
     if (process.env.ANTHROPIC_API_KEY) {
       try {
         // RAG: pobierz zapisaną wiedzę o tej marce dla zalogowanego usera
