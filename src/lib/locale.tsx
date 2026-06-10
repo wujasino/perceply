@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-type Locale = 'en' | 'pl';
+type Locale = 'en' | 'pl' | 'de' | 'fr' | 'es' | 'it';
 
-const translations: Record<Locale, Record<string, string>> = {
+const translations: Partial<Record<Locale, Record<string, string>>> = {
   en: {
     home: 'Home',
     dashboard: 'Dashboard',
@@ -533,11 +533,30 @@ type LocaleContextValue = {
 
 const LocaleContext = createContext<LocaleContextValue | undefined>(undefined);
 
-export const LocaleProvider = ({ children }: { children: ReactNode }) => {
-  const [locale, setLocale] = useState<Locale>((navigator.language || 'en').startsWith('pl') ? 'pl' : 'en');
+const SUPPORTED: Locale[] = ['en', 'pl', 'de', 'fr', 'es', 'it'];
+const detectInitialLocale = (): Locale => {
+  try {
+    const stored = localStorage.getItem('bb_locale') as Locale | null;
+    if (stored && SUPPORTED.includes(stored)) return stored;
+  } catch { /* ignore */ }
+  const code = (navigator.language || 'en').slice(0, 2).toLowerCase() as Locale;
+  return SUPPORTED.includes(code) ? code : 'en';
+};
 
+export const LocaleProvider = ({ children }: { children: ReactNode }) => {
+  const [locale, setLocaleState] = useState<Locale>(detectInitialLocale);
+
+  const setLocale = (l: Locale) => {
+    setLocaleState(l);
+    try { localStorage.setItem('bb_locale', l); } catch { /* ignore */ }
+  };
+
+  // Fall back to English when a key is missing in the active locale (e.g. de/fr/es/it
+  // until their translations are filled in).
   const t = (key: string) => {
-    return translations[locale][key] ?? key;
+    const dict = translations[locale];
+    if (dict && dict[key]) return dict[key];
+    return translations.en?.[key] ?? key;
   };
 
   return (
