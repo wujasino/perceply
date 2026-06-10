@@ -101,29 +101,22 @@ const Landing = () => {
             </p>
           </motion.div>
 
-          <motion.form
-            onSubmit={handleSearch}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="glass-card p-2 max-w-xl mx-auto flex items-center gap-2"
+            className="max-w-xl mx-auto"
           >
-            <Search className="w-5 h-5 text-muted-foreground ml-3 shrink-0" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+            <PromptInputBox
+              isLoading={false}
               placeholder={t('placeholderExample')}
-              className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-sm outline-none py-3"
+              onSend={(message, files) => {
+                if (message.trim()) {
+                  navigate(`/dashboard?brand=${encodeURIComponent(message.trim())}`);
+                }
+              }}
             />
-            <button
-              type="submit"
-              className="bg-primary text-primary-foreground px-5 py-2.5 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 shrink-0"
-            >
-              {t('brew')}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </motion.form>
+          </motion.div>
 
           <div className="max-w-xl mx-auto mt-4 flex items-center justify-center">
             <div className="text-xs text-muted-foreground/80">
@@ -172,40 +165,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Prompt Input Box Demo */}
-      <section className="py-20 px-4 bg-gradient-to-b from-background to-[#0e0e0e]">
-        <div className="max-w-3xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-2xl font-display text-foreground mb-3">Zaawansowany interfejs zapytań</h2>
-            <p className="text-muted-foreground text-sm">Testuj nowy interfejs wejściowy z możliwością przesyłania obrazów, nagrań głosowych i zaawansowanego przetwarzania</p>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="glass-card p-8 rounded-2xl"
-          >
-            <PromptInputBox
-              isLoading={false}
-              placeholder="Wpisz pytanie o analizę AI..."
-              onSend={(message, files) => {
-                toast.success(`Wysłano: ${message}`);
-                if (files && files.length > 0) {
-                  toast.info(`Załączono ${files.length} plik(ów)`);
-                }
-              }}
-            />
-          </motion.div>
-        </div>
-      </section>
+
 
       {/* Features */}
       <section className="py-20 px-4 bg-[#0e0e0e]">
