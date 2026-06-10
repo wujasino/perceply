@@ -1,142 +1,200 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
-import { pricingTiers } from '@/data/mockData';
 import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
-import { useEffect, useState } from 'react';
+import { PricingCards, type PricingTierCard } from '@/components/ui/pricing-cards';
+import { Button } from '@/components/ui/button';
 
 const Pricing = () => {
   const { t } = useTranslation();
-
   const [loading, setLoading] = useState<string | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
-    if (params.get('success')) {
-      setMessage(
-        'Płatność zakończona sukcesem! Twój plan został aktywowany.'
-      );
-    }
-
-    if (params.get('canceled')) {
-      setMessage('Płatność została anulowana.');
-    }
+    if (params.get('success')) setMessage('Płatność zakończona sukcesem! Twój plan został aktywowany.');
+    if (params.get('canceled')) setMessage('Płatność została anulowana.');
   }, []);
 
-  const handleCheckout = async (planName: string) => {
-    if (planName === 'Free') {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        window.location.href = '/register';
-        return;
-      }
-
-      window.location.href = '/dashboard';
+  const handlePlanSelect = async (planId: string) => {
+    if (planId === 'free') {
+      const { data: { user } } = await supabase.auth.getUser();
+      window.location.href = user ? '/dashboard' : '/register';
       return;
     }
 
-    // Enterprise → mail
-    if (planName === 'Enterprise Roast') {
-      window.location.href =
-        'mailto:kontakt@bitbrew.pl?subject=Enterprise Plan';
+    if (planId === 'enterprise') {
+      window.location.href = 'mailto:kontakt@bitbrew.pl?subject=Enterprise Plan';
       return;
     }
 
-    setLoading(planName);
+    setLoading(planId);
     setMessage('');
 
     try {
-      // Auth user
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = '/login'; return; }
 
-      if (!user) {
-        window.location.href = '/login';
-        return;
-      }
-
-      // Stripe Price IDs
-      const priceId =
-        planName === 'Solo Brew'
-          ? import.meta.env.VITE_STRIPE_SOLO_PRICE_ID
-          : import.meta.env.VITE_STRIPE_GROWTH_PRICE_ID;
+      const priceId = planId === 'solo'
+        ? import.meta.env.VITE_STRIPE_SOLO_PRICE_ID
+        : import.meta.env.VITE_STRIPE_GROWTH_PRICE_ID;
 
       if (!priceId) {
-        setMessage(
-          'Brak konfiguracji Stripe Price ID. Skontaktuj się z administratorem.'
-        );
+        setMessage('Brak konfiguracji Stripe Price ID. Skontaktuj się z administratorem.');
         return;
       }
 
-      // Create checkout session
-      const response = await fetch(
-        '/.netlify/functions/create-checkout',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            priceId,
-            userId: user.id,
-            userEmail: user.email,
-          }),
-        }
-      );
+      const response = await fetch('/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, userId: user.id, userEmail: user.email }),
+      });
 
-      // HTTP error
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}`;
-
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // ignore json parse error
-        }
-
-        console.error('Checkout error:', errorMessage);
-
-        setMessage(
-          'Nie udało się rozpocząć płatności. Spróbuj ponownie później.'
-        );
-
+        try { const d = await response.json(); errorMessage = d.error || errorMessage; } catch {}
+        setMessage('Nie udało się rozpocząć płatności. Spróbuj ponownie później.');
         return;
       }
 
-      // Parse response
       const data = await response.json();
-
-      if (!data?.url) {
-        setMessage(
-          data?.error ||
-          'Nie udało się utworzyć sesji płatności.'
-        );
-
-        return;
-      }
-
-      // Redirect Stripe Checkout
+      if (!data?.url) { setMessage(data?.error || 'Nie udało się utworzyć sesji płatności.'); return; }
       window.location.href = data.url;
-
-    } catch (error) {
-      console.error('Stripe checkout error:', error);
-
-      setMessage(
-        'Wystąpił błąd połączenia. Spróbuj ponownie.'
-      );
+    } catch {
+      setMessage('Wystąpił błąd połączenia. Spróbuj ponownie.');
     } finally {
       setLoading(null);
     }
   };
+
+  const creditPacks = [
+    { id: 'credits_10', label: t('credits_pack_10'), price: '29 zł', analyses: 10, popular: false },
+    { id: 'credits_25', label: t('credits_pack_25'), price: '59 zł', analyses: 25, popular: true },
+    { id: 'credits_50', label: t('credits_pack_50'), price: '99 zł', analyses: 50, popular: false },
+  ];
+
+  const handleCreditsBuy = async (packId: string) => {
+    setLoadingCredits(packId);
+    setMessage('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = '/login'; return; }
+
+      const priceIdMap: Record<string, string> = {
+        credits_10: import.meta.env.VITE_STRIPE_CREDITS_10_PRICE_ID ?? '',
+        credits_25: import.meta.env.VITE_STRIPE_CREDITS_25_PRICE_ID ?? '',
+        credits_50: import.meta.env.VITE_STRIPE_CREDITS_50_PRICE_ID ?? '',
+      };
+      const priceId = priceIdMap[packId];
+
+      if (!priceId) {
+        setMessage('Brak konfiguracji Stripe Price ID dla kredytów. Skontaktuj się z administratorem.');
+        return;
+      }
+
+      const response = await fetch('/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, userId: user.id, userEmail: user.email }),
+      });
+
+      if (!response.ok) {
+        setMessage('Nie udało się rozpocząć płatności. Spróbuj ponownie później.');
+        return;
+      }
+
+      const data = await response.json();
+      if (!data?.url) { setMessage(data?.error || 'Nie udało się utworzyć sesji płatności.'); return; }
+      window.location.href = data.url;
+    } catch {
+      setMessage('Wystąpił błąd połączenia. Spróbuj ponownie.');
+    } finally {
+      setLoadingCredits(null);
+    }
+  };
+
+  const plans: PricingTierCard[] = [
+    {
+      id: 'free',
+      name: 'Free',
+      description: t('tier_free_desc'),
+      priceMonthly: 'Free',
+      priceYearly: 'Free',
+      periodMonthly: '',
+      periodYearly: '',
+      isPopular: false,
+      buttonLabel: t('start_for_free'),
+      features: [
+        { name: t('tier_free_feat_1'), isIncluded: true },
+        { name: t('tier_free_feat_2'), isIncluded: true },
+        { name: t('tier_free_feat_3'), isIncluded: true },
+        { name: t('tier_solo_feat_2'), isIncluded: false },
+        { name: t('tier_solo_feat_4'), isIncluded: false },
+        { name: t('tier_growth_feat_6'), isIncluded: false },
+      ],
+    },
+    {
+      id: 'solo',
+      name: 'Solo Brew',
+      description: t('tier_solo_desc'),
+      priceMonthly: '99 zł',
+      priceYearly: '950 zł',
+      periodMonthly: t('tier_period_month'),
+      periodYearly: t('tier_period_year'),
+      isPopular: false,
+      buttonLabel: t('get_started'),
+      features: [
+        { name: t('tier_solo_feat_1'), isIncluded: true },
+        { name: t('tier_solo_feat_2'), isIncluded: true },
+        { name: t('tier_solo_feat_3'), isIncluded: true },
+        { name: t('tier_solo_feat_4'), isIncluded: true },
+        { name: t('tier_solo_feat_5'), isIncluded: true },
+        { name: t('tier_growth_feat_6'), isIncluded: false },
+      ],
+    },
+    {
+      id: 'growth',
+      name: 'Growth Roast',
+      description: t('tier_growth_desc'),
+      priceMonthly: '249 zł',
+      priceYearly: '2 350 zł',
+      periodMonthly: t('tier_period_month'),
+      periodYearly: t('tier_period_year'),
+      isPopular: true,
+      buttonLabel: t('get_started'),
+      features: [
+        { name: t('tier_growth_feat_1'), isIncluded: true },
+        { name: t('tier_growth_feat_2'), isIncluded: true },
+        { name: t('tier_growth_feat_3'), isIncluded: true },
+        { name: t('tier_growth_feat_4'), isIncluded: true },
+        { name: t('tier_growth_feat_5'), isIncluded: true },
+        { name: t('tier_growth_feat_6'), isIncluded: true },
+      ],
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise Roast',
+      description: t('tier_ent_desc'),
+      priceMonthly: t('tier_ent_price'),
+      priceYearly: t('tier_ent_price'),
+      periodMonthly: '',
+      periodYearly: '',
+      isPopular: false,
+      buttonLabel: t('contact_sales'),
+      features: [
+        { name: t('tier_ent_feat_1'), isIncluded: true },
+        { name: t('tier_ent_feat_2'), isIncluded: true },
+        { name: t('tier_ent_feat_3'), isIncluded: true },
+        { name: t('tier_ent_feat_4'), isIncluded: true },
+        { name: t('tier_ent_feat_5'), isIncluded: true },
+        { name: t('tier_growth_feat_6'), isIncluded: true },
+      ],
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,139 +202,81 @@ const Pricing = () => {
 
       <div className="pt-28 pb-20 px-4 max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-14">
+        <motion.div
+          className="text-center mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
           <h1 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
             {t('pricing_title')}
           </h1>
-
           <p className="text-muted-foreground text-sm max-w-lg mx-auto">
             {t('pricing_subtitle')}
           </p>
+          {message && (
+            <p className="mt-4 text-sm text-primary font-medium">{message}</p>
+          )}
+        </motion.div>
 
-          <div className="mt-8 mb-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <span className="text-sm text-muted-foreground hidden sm:inline-block">
-              {t('billing_cycle_label')}:
-            </span>
-            <div className="inline-flex rounded-full border border-primary/20 bg-background p-1">
-              <button
-                type="button"
-                onClick={() => setBillingCycle('monthly')}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${billingCycle === 'monthly'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {t('billing_cycle_monthly')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillingCycle('yearly')}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition ${billingCycle === 'yearly'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'}`}
-              >
-                {t('billing_cycle_yearly')}
-              </button>
+        {/* New pricing cards with toggle + comparison table */}
+        <PricingCards
+          plans={plans}
+          billingCycle={billingCycle}
+          onCycleChange={setBillingCycle}
+          onPlanSelect={(planId) => handlePlanSelect(planId)}
+          loadingPlan={loading}
+          savingsLabel={t('billing_savings').replace('Save ', '').replace('Oszczędź ', '').split(' ')[0]}
+        />
+
+        {/* Credit packs add-on */}
+        <motion.div
+          className="mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-primary" />
+              <h2 className="text-2xl font-display text-foreground">{t('credits_addon_title')}</h2>
             </div>
+            <p className="text-sm text-muted-foreground">{t('credits_addon_subtitle')}</p>
           </div>
 
-          <p className="text-center text-xs text-muted-foreground mb-10">
-            {t('billing_savings')}
-          </p>
-
-          {message && (
-            <p className="mt-4 text-sm text-primary font-medium">
-              {message}
-            </p>
-          )}
-        </div>
-
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {pricingTiers.map((tier, index) => {
-            const displayPrice = billingCycle === 'yearly' ? tier.yearlyPrice ?? tier.price : tier.monthlyPrice ?? tier.price;
-            const isEnterprise = tier.name === 'Enterprise Roast';
-            const buttonClass = tier.highlighted
-              ? 'bg-primary text-primary-foreground'
-              : isEnterprise
-                ? 'border border-slate-500 bg-slate-950 text-foreground hover:bg-slate-900'
-                : tier.name === 'Solo Brew'
-                  ? 'border border-yellow-400 bg-yellow-500/10 text-foreground hover:bg-yellow-500/20'
-                  : 'bg-secondary text-secondary-foreground';
-
-            return (
-            <motion.div
-              key={tier.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-                className={`glass-card-hover p-8 flex flex-col min-h-[520px] ${
-                tier.highlighted
-                  ? 'border-primary/30 ring-1 ring-primary/20'
-                  : ''
-              }`}
-            >
-              {/* Popular badge */}
-              {tier.highlighted && (
-                <span className="text-[10px] text-primary uppercase tracking-widest font-data mb-3">
-                  {t('most_popular')}
-                </span>
-              )}
-
-              {/* Name */}
-              <h3 className="text-lg font-medium text-foreground">
-                {tier.name}
-              </h3>
-
-              {/* Price */}
-              <div className="mt-3 mb-4">
-                <span className="text-4xl font-display text-foreground">
-                    {displayPrice}
-                </span>
-
-                <span className="text-muted-foreground text-sm">
-                    {billingCycle === 'yearly' ? t('tier_period_year') : t(tier.periodKey)}
-                </span>
-              </div>
-
-              {/* Description */}
-              <p className="text-muted-foreground text-sm mb-6">
-                {t(tier.descriptionKey)}
-              </p>
-
-              {/* Features */}
-              <ul className="space-y-2.5 mb-8 flex-1">
-                {tier.featureKeys.map((featureKey) => (
-                  <li
-                    key={featureKey}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-
-                    {t(featureKey)}
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <button
-                onClick={() => handleCheckout(tier.name)}
-                disabled={loading === tier.name}
-                  className={`w-full py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50 ${buttonClass}`}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            {creditPacks.map((pack) => (
+              <div
+                key={pack.id}
+                className={`relative rounded-xl border p-6 flex flex-col gap-4 transition-all ${
+                  pack.popular
+                    ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                    : 'border-[hsl(var(--glass-border))] bg-background/80'
+                }`}
               >
-                {loading === tier.name
-                  ? 'Ładowanie...'
-                    : isEnterprise
-                    ? t('contact_sales')
-                      : tier.name === 'Free'
-                        ? t('start_for_free')
-                        : t('get_started')}
-              </button>
-            </motion.div>
-            );
-          })}
-        </div>
+                {pack.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 bg-primary text-primary-foreground rounded-full whitespace-nowrap">
+                    {t('credits_best_value')}
+                  </span>
+                )}
+                <div>
+                  <p className="text-3xl font-display text-foreground">{pack.price}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{pack.label}</p>
+                </div>
+                <Button
+                  onClick={() => handleCreditsBuy(pack.id)}
+                  disabled={loadingCredits === pack.id}
+                  variant={pack.popular ? 'default' : 'outline'}
+                  className="w-full"
+                >
+                  {loadingCredits === pack.id ? 'Ładowanie...' : t('credits_buy')}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
-        <div className="mt-12 space-y-10">
+        {/* Social proof + FAQ */}
+        <div className="mt-16 space-y-10">
           <div className="rounded-3xl border border-slate-900/10 bg-slate-950/60 p-8 text-center">
             <p className="text-sm uppercase tracking-[0.35em] text-primary mb-3">
               {t('pricing_social_proof_heading')}
@@ -293,36 +293,19 @@ const Pricing = () => {
             <h2 className="text-lg font-semibold text-foreground">
               {t('pricing_faq_heading')}
             </h2>
-
             <div className="grid gap-4 sm:grid-cols-2">
               {[
-                {
-                  question: t('pricing_faq_q_cancel'),
-                  answer: t('pricing_faq_a_cancel'),
-                },
-                {
-                  question: t('pricing_faq_q_overage'),
-                  answer: t('pricing_faq_a_overage'),
-                },
-                {
-                  question: t('pricing_faq_q_switch'),
-                  answer: t('pricing_faq_a_switch'),
-                },
-                {
-                  question: t('pricing_faq_q_support'),
-                  answer: t('pricing_faq_a_support'),
-                },
+                { question: t('pricing_faq_q_cancel'), answer: t('pricing_faq_a_cancel') },
+                { question: t('pricing_faq_q_overage'), answer: t('pricing_faq_a_overage') },
+                { question: t('pricing_faq_q_switch'), answer: t('pricing_faq_a_switch') },
+                { question: t('pricing_faq_q_support'), answer: t('pricing_faq_a_support') },
               ].map((item) => (
                 <div
                   key={item.question}
                   className="rounded-3xl border border-[hsl(var(--glass-border))] bg-background/80 p-6"
                 >
-                  <h3 className="text-sm font-semibold text-foreground">
-                    {item.question}
-                  </h3>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {item.answer}
-                  </p>
+                  <h3 className="text-sm font-semibold text-foreground">{item.question}</h3>
+                  <p className="mt-3 text-sm text-muted-foreground">{item.answer}</p>
                 </div>
               ))}
             </div>
