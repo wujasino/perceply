@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Zap } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { PricingCards, type PricingTierCard } from '@/components/ui/pricing-cards';
+import { Button } from '@/components/ui/button';
 
 const Pricing = () => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
+  const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -65,6 +68,52 @@ const Pricing = () => {
       setMessage('Wystąpił błąd połączenia. Spróbuj ponownie.');
     } finally {
       setLoading(null);
+    }
+  };
+
+  const creditPacks = [
+    { id: 'credits_10', label: t('credits_pack_10'), price: '29 zł', analyses: 10, popular: false },
+    { id: 'credits_25', label: t('credits_pack_25'), price: '59 zł', analyses: 25, popular: true },
+    { id: 'credits_50', label: t('credits_pack_50'), price: '99 zł', analyses: 50, popular: false },
+  ];
+
+  const handleCreditsBuy = async (packId: string) => {
+    setLoadingCredits(packId);
+    setMessage('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = '/login'; return; }
+
+      const priceIdMap: Record<string, string> = {
+        credits_10: import.meta.env.VITE_STRIPE_CREDITS_10_PRICE_ID ?? '',
+        credits_25: import.meta.env.VITE_STRIPE_CREDITS_25_PRICE_ID ?? '',
+        credits_50: import.meta.env.VITE_STRIPE_CREDITS_50_PRICE_ID ?? '',
+      };
+      const priceId = priceIdMap[packId];
+
+      if (!priceId) {
+        setMessage('Brak konfiguracji Stripe Price ID dla kredytów. Skontaktuj się z administratorem.');
+        return;
+      }
+
+      const response = await fetch('/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, userId: user.id, userEmail: user.email }),
+      });
+
+      if (!response.ok) {
+        setMessage('Nie udało się rozpocząć płatności. Spróbuj ponownie później.');
+        return;
+      }
+
+      const data = await response.json();
+      if (!data?.url) { setMessage(data?.error || 'Nie udało się utworzyć sesji płatności.'); return; }
+      window.location.href = data.url;
+    } catch {
+      setMessage('Wystąpił błąd połączenia. Spróbuj ponownie.');
+    } finally {
+      setLoadingCredits(null);
     }
   };
 
@@ -178,6 +227,53 @@ const Pricing = () => {
           loadingPlan={loading}
           savingsLabel={t('billing_savings').replace('Save ', '').replace('Oszczędź ', '').split(' ')[0]}
         />
+
+        {/* Credit packs add-on */}
+        <motion.div
+          className="mt-16"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-primary" />
+              <h2 className="text-2xl font-display text-foreground">{t('credits_addon_title')}</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">{t('credits_addon_subtitle')}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            {creditPacks.map((pack) => (
+              <div
+                key={pack.id}
+                className={`relative rounded-xl border p-6 flex flex-col gap-4 transition-all ${
+                  pack.popular
+                    ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20'
+                    : 'border-[hsl(var(--glass-border))] bg-background/80'
+                }`}
+              >
+                {pack.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 bg-primary text-primary-foreground rounded-full whitespace-nowrap">
+                    {t('credits_best_value')}
+                  </span>
+                )}
+                <div>
+                  <p className="text-3xl font-display text-foreground">{pack.price}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{pack.label}</p>
+                </div>
+                <Button
+                  onClick={() => handleCreditsBuy(pack.id)}
+                  disabled={loadingCredits === pack.id}
+                  variant={pack.popular ? 'default' : 'outline'}
+                  className="w-full"
+                >
+                  {loadingCredits === pack.id ? 'Ładowanie...' : t('credits_buy')}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </motion.div>
 
         {/* Social proof + FAQ */}
         <div className="mt-16 space-y-10">

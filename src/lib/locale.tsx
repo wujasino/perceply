@@ -180,6 +180,15 @@ const translations: Record<Locale, Record<string, string>> = {
     newsletter_error_generic: 'An error occurred. Please try again.',
     newsletter_success_title: 'Thank you for subscribing!',
     newsletter_success_desc: "We've sent a confirmation email to your inbox.",
+    // Credits add-on
+    credits_addon_title: 'Need more analyses?',
+    credits_addon_subtitle: 'Top up your account with one-time credit packs — no plan change required.',
+    credits_pack_label: 'analyses',
+    credits_buy: 'Buy pack',
+    credits_pack_10: '10 extra analyses',
+    credits_pack_25: '25 extra analyses',
+    credits_pack_50: '50 extra analyses',
+    credits_best_value: 'Best value',
   },
   pl: {
     home: 'Strona',
@@ -358,6 +367,15 @@ const translations: Record<Locale, Record<string, string>> = {
     newsletter_error_generic: 'Wystąpił błąd. Spróbuj ponownie.',
     newsletter_success_title: 'Dziękujemy za zapisanie się!',
     newsletter_success_desc: 'Wysłaliśmy e-mail potwierdzający na Twoją skrzynkę.',
+    // Kredyty dodatkowe
+    credits_addon_title: 'Potrzebujesz więcej analiz?',
+    credits_addon_subtitle: 'Doładuj konto jednorazowymi pakietami kredytów — bez zmiany planu.',
+    credits_pack_label: 'analiz',
+    credits_buy: 'Kup pakiet',
+    credits_pack_10: '10 dodatkowych analiz',
+    credits_pack_25: '25 dodatkowych analiz',
+    credits_pack_50: '50 dodatkowych analiz',
+    credits_best_value: 'Najlepsza wartość',
   },
 };
 
