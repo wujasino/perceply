@@ -280,6 +280,7 @@ const Landing = () => {
               </div>
             </motion.div>
           </div>
+        </div>
         </section>
       </FloatingPathsBackground>
 
