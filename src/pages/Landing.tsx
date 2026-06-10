@@ -49,8 +49,9 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero */}
-      <FloatingPathsBackground position={1} className="hero pt-32 pb-20 px-4">
+      {/* Hero + Why (one continuous animated background) */}
+      <FloatingPathsBackground position={1} className="relative">
+      <section className="hero pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -150,10 +151,10 @@ const Landing = () => {
             </motion.div>
           </motion.button>
         </div>
-      </FloatingPathsBackground>
+      </section>
 
-      {/* Features */}
-      <FloatingPathsBackground id="why-section" position={0.5} className="py-24 px-4 bg-background">
+      {/* Features (shares the hero's animated background — no hard seam) */}
+      <section id="why-section" className="py-24 px-4 relative">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -278,7 +279,7 @@ const Landing = () => {
               </div>
             </motion.div>
           </div>
-        </div>
+        </section>
       </FloatingPathsBackground>
 
       {/* CTA */}
