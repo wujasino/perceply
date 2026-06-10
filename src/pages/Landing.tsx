@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/sonner';
 import { useTranslation } from '@/lib/locale';
+import { PromptInputBox } from '@/components/ui/ai-prompt-box';
 
 const features = [
   {
@@ -168,6 +169,41 @@ const Landing = () => {
           >
             {t('tryDemo')}
           </motion.p>
+        </div>
+      </section>
+
+      {/* Prompt Input Box Demo */}
+      <section className="py-20 px-4 bg-gradient-to-b from-background to-[#0e0e0e]">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-2xl font-display text-foreground mb-3">Zaawansowany interfejs zapytań</h2>
+            <p className="text-muted-foreground text-sm">Testuj nowy interfejs wejściowy z możliwością przesyłania obrazów, nagrań głosowych i zaawansowanego przetwarzania</p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="glass-card p-8 rounded-2xl"
+          >
+            <PromptInputBox
+              isLoading={false}
+              placeholder="Wpisz pytanie o analizę AI..."
+              onSend={(message, files) => {
+                toast.success(`Wysłano: ${message}`);
+                if (files && files.length > 0) {
+                  toast.info(`Załączono ${files.length} plik(ów)`);
+                }
+              }}
+            />
+          </motion.div>
         </div>
       </section>
 

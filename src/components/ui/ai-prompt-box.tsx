@@ -5,7 +5,9 @@ import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, Folder
 import { motion, AnimatePresence } from "framer-motion";
 
 // Utility function for className merging
-const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
+function cn(...classes: (string | undefined | null | false)[]) {
+    return classes.filter(Boolean).join(" ");
+}
 
 // Embedded CSS for minimal custom styles
 const styles = `
@@ -28,27 +30,26 @@ const styles = `
   }
 `;
 
-// Inject styles into document
 if (typeof document !== "undefined") {
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
 }
 
 // Textarea Component
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  className?: string;
+    className?: string;
 }
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (
-  <textarea
-    className={cn(
-      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
-      className
-    )}
-    ref={ref}
-    rows={1}
-    {...props}
-  />
+    <textarea
+        className={cn(
+            "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
+            className
+        )}
+        ref={ref}
+        rows={1}
+        {...props}
+    />
 ));
 Textarea.displayName = "Textarea";
 
@@ -57,21 +58,22 @@ const TooltipProvider = TooltipPrimitive.Provider;
 const Tooltip = TooltipPrimitive.Root;
 const TooltipTrigger = TooltipPrimitive.Trigger;
 const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+    React.ElementRef<typeof TooltipPrimitive.Content>,
+    React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
-    ref={ref}
-    sideOffset={sideOffset}
-    className={cn(
-      "z-50 overflow-hidden rounded-md border border-[#333333] bg-[#1F2023] px-3 py-1.5 text-sm text-white shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-      className
-    )}
-    {...props}
-  />
+    <TooltipPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        className={cn(
+            "z-50 overflow-hidden rounded-md border border-[#333333] bg-[#1F2023] px-3 py-1.5 text-sm text-white shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+            className
+        )}
+        {...props}
+    />
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
+// end of file
 // Dialog Components
 const Dialog = DialogPrimitive.Root;
 const DialogPortal = DialogPrimitive.Portal;
@@ -137,13 +139,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       default: "bg-white hover:bg-white/80 text-black",
       outline: "border border-[#444444] bg-transparent hover:bg-[#3A3A40]",
       ghost: "bg-transparent hover:bg-[#3A3A40]",
-    } as const;
+    };
     const sizeClasses = {
       default: "h-10 px-4 py-2",
       sm: "h-8 px-3 text-sm",
       lg: "h-12 px-6",
       icon: "h-8 w-8 rounded-full aspect-[1/1]",
-    } as const;
+    };
     return (
       <button
         className={cn(
@@ -526,8 +528,8 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   }, []);
 
   React.useEffect(() => {
-    document.addEventListener("paste", handlePaste as any);
-    return () => document.removeEventListener("paste", handlePaste as any);
+      document.addEventListener("paste", handlePaste);
+      return () => document.removeEventListener("paste", handlePaste);
   }, [handlePaste]);
 
   const handleSubmit = () => {
@@ -814,3 +816,5 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   );
 });
 PromptInputBox.displayName = "PromptInputBox";
+
+export default PromptInputBox;
