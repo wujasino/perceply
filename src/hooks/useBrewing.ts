@@ -32,7 +32,7 @@ const buildViewFromStored = (
     { model: 'Gemini', sentiment: dims.mentions > 50 ? 'Positive' : 'Neutral', association: `${brandName} mentions`, confidence: Math.max(20, Math.min(92, dims.mentions)) },
   ];
   return {
-    id: Math.random().toString(36).substr(2, 9),
+    id: crypto.randomUUID(),
     brandName,
     timestamp: createdAt || new Date().toISOString(),
     dimensions: dims,
@@ -241,7 +241,7 @@ export function useBrewing() {
       };
 
       const analysisResult: AnalysisResult = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         brandName,
         timestamp: new Date().toISOString(),
         dimensions: {
@@ -343,7 +343,7 @@ export function useBrewing() {
       const fallback = deterministicFallback(brandName || 'unknown');
 
       const demoResult: AnalysisResult = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: crypto.randomUUID(),
         brandName,
         timestamp: new Date().toISOString(),
         dimensions: fallback.dimensions,

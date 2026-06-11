@@ -8,9 +8,9 @@ if (!globalThis.WebSocket) {
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const VOYAGE_API_KEY = process.env.VOYAGE_API_KEY;
-const MAX_CHARS = 50000; // limit wejścia, żeby nie wrzucić ogromnego tekstu
+const MAX_CHARS = 50_000;
+const EXTERNAL_TIMEOUT_MS = 20_000;
 
-// Dzieli tekst na nakładające się fragmenty (lepszy recall przy wyszukiwaniu)
 function chunkText(text, size = 800, overlap = 150) {
   const chunks = [];
   for (let i = 0; i < text.length; i += size - overlap) {
@@ -20,64 +20,69 @@ function chunkText(text, size = 800, overlap = 150) {
   return chunks.filter(Boolean);
 }
 
-// Jeden request do Voyage dla wszystkich fragmentów naraz.
-// input_type: "document" — bo zapisujemy wiedzę (przy wyszukiwaniu użyjemy "query").
 async function embedBatch(inputs) {
-  const res = await fetch("https://api.voyageai.com/v1/embeddings", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${VOYAGE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "voyage-3.5",
-      input: inputs,
-      input_type: "document",
-    }),
-  });
-  if (!res.ok) throw new Error(`Voyage: ${res.status} ${await res.text()}`);
-  const data = await res.json();
-  return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), EXTERNAL_TIMEOUT_MS);
+  try {
+    const res = await fetch("https://api.voyageai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${VOYAGE_API_KEY}`,
+      },
+      body: JSON.stringify({ model: "voyage-3.5", input: inputs, input_type: "document" }),
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Voyage embedding failed`);
+    const data = await res.json();
+    return data.data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
+  } finally {
+    clearTimeout(id);
+  }
 }
-
-console.log('DEBUG ingest env:', {
-  hasUrl: !!SUPABASE_URL,
-  hasKey: !!SUPABASE_ANON_KEY,
-  hasVoyage: !!VOYAGE_API_KEY,
-});
 
 export async function handler(event) {
   if (event.httpMethod !== "POST")
     return { statusCode: 405, body: "Method Not Allowed" };
 
+  if (event.body && event.body.length > (MAX_CHARS + 2048)) {
+    return { statusCode: 413, body: JSON.stringify({ error: "Payload too large" }) };
+  }
+
   try {
-    const token = event.headers.authorization?.replace("Bearer ", "");
-    if (!token) return { statusCode: 401, body: "Brak tokenu autoryzacji" };
+    const token = event.headers.authorization?.replace(/^Bearer\s+/i, "");
+    if (!token) return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized" }) };
 
-    const { brandName, text } = JSON.parse(event.body || "{}");
-    if (!brandName || !text)
-      return { statusCode: 400, body: "Wymagane: brandName i text" };
+    let brandName, text;
+    try {
+      ({ brandName, text } = JSON.parse(event.body || "{}"));
+    } catch {
+      return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON" }) };
+    }
+
+    if (!brandName || typeof brandName !== "string" || brandName.trim().length === 0)
+      return { statusCode: 400, body: JSON.stringify({ error: "Missing brandName" }) };
+    if (!text || typeof text !== "string")
+      return { statusCode: 400, body: JSON.stringify({ error: "Missing text" }) };
     if (text.length > MAX_CHARS)
-      return { statusCode: 413, body: `Tekst za długi (max ${MAX_CHARS} znaków)` };
+      return { statusCode: 413, body: JSON.stringify({ error: `Text too long (max ${MAX_CHARS} chars)` }) };
 
-    // Klient w kontekście użytkownika — RLS sam ustawi user_id (default auth.uid())
-   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  global: { headers: { Authorization: `Bearer ${token}` } },
-  auth: { autoRefreshToken: false, persistSession: false },
-  realtime: { transport: ws, params: { eventsPerSecond: 0 } },
-});
-
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+      realtime: { transport: ws, params: { eventsPerSecond: 0 } },
+    });
 
     const chunks = chunkText(text);
     if (chunks.length === 0)
-      return { statusCode: 400, body: "Brak treści do zapisania" };
+      return { statusCode: 400, body: JSON.stringify({ error: "No content to save" }) };
 
     const embeddings = await embedBatch(chunks);
 
     const rows = chunks.map((content, i) => ({
-      brand_name: brandName,
+      brand_name: brandName.trim(),
       content,
-      embedding: JSON.stringify(embeddings[i]), // pgvector oczekuje formatu '[...]'
+      embedding: JSON.stringify(embeddings[i]),
     }));
 
     const { error } = await supabase.from("brand_knowledge").insert(rows);
@@ -85,7 +90,7 @@ export async function handler(event) {
 
     return { statusCode: 200, body: JSON.stringify({ inserted: rows.length }) };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    console.error("ingest-knowledge error:", err.message);
+    return { statusCode: 500, body: JSON.stringify({ error: "Failed to save knowledge. Please try again." }) };
   }
 }
-

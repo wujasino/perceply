@@ -81,7 +81,11 @@ export default function Settings() {
     setAvatarUrl(blobUrl);
 
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      if (!ALLOWED_EXTS.includes(ext)) {
+        throw new Error(t('settings_avatar_invalid_type'));
+      }
       // Always overwrite the same path — avoids orphaned files in storage
       const storagePath = `${userId}/avatar.${ext}`;
 
