@@ -2,11 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-let componentTagger: any = undefined;
-try {
-  componentTagger = require('lovable-tagger').componentTagger;
-} catch (e) { /* optional */ }
-
 function netlifyFunctionsPlugin() {
   return {
     name: 'netlify-functions-middleware',
@@ -56,7 +51,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger && componentTagger(),
     mode === "development" && netlifyFunctionsPlugin()
   ].filter(Boolean),
   resolve: {
@@ -66,15 +60,10 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Core React runtime
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          // Animation (largest single dep)
           'vendor-motion': ['framer-motion'],
-          // Charts (recharts + deps)
           'vendor-charts': ['recharts'],
-          // Supabase
           'vendor-supabase': ['@supabase/supabase-js'],
-          // Radix UI primitives
           'vendor-radix': [
             '@radix-ui/react-accordion',
             '@radix-ui/react-dialog',
@@ -89,7 +78,6 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Raise warning threshold to avoid noise for known large deps
     chunkSizeWarningLimit: 600,
   },
 }));
