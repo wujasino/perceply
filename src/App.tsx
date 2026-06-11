@@ -20,6 +20,7 @@ const Settings       = lazy(() => import("./pages/Settings"));
 const Developers     = lazy(() => import("./pages/Developers"));
 const ApiDocs        = lazy(() => import("./pages/ApiDocs"));
 const NotFound       = lazy(() => import("./pages/NotFound"));
+const ResetPassword  = lazy(() => import("./pages/ResetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +85,7 @@ const App = () => (
               }
             />
             <Route path="/docs/api" element={<ApiDocs />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
