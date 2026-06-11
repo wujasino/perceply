@@ -17,6 +17,12 @@
 [functions]
   node_bundler = "esbuild"
 
+# ── SPA fallback — wszystkie trasy obsługuje React Router ────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
 # ── Security headers ──────────────────────────────────────────────────────────
 [[headers]]
   for = "/*"
