@@ -134,10 +134,18 @@ export default function Settings() {
 
   const handleSave = async () => {
     setSaving(true);
-    await supabase.auth.updateUser({ data: { full_name: displayName } });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      const { error } = await supabase.auth.updateUser({ data: { full_name: displayName } });
+      if (error) throw error;
+      await supabase.auth.refreshSession();
+      await supabase.from('profiles').update({ full_name: displayName }).eq('id', userId);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteAccount = async () => {
