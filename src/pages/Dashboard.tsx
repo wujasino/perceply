@@ -25,16 +25,31 @@ const PLAN_TIER: Record<string, number> = {
 const tierOf = (plan: string) => PLAN_TIER[plan] ?? 0;
 
 const LockedOverlay = ({ title, description, onUpgrade, t }: { title: string; description: string; onUpgrade: () => void; t: (k: string) => string }) => (
-  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-slate-950/90 backdrop-blur-sm border border-slate-800">
-    <div className="flex flex-col items-center gap-3 text-center px-6">
-      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary text-lg">
-        🔒
+  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl overflow-hidden">
+    {/* Blurred bg */}
+    <div className="absolute inset-0 bg-background/60 backdrop-blur-md" />
+    {/* Subtle gradient top */}
+    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
+    <div className="relative flex flex-col items-center gap-4 text-center px-8">
+      {/* Icon */}
+      <div className="relative">
+        <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl scale-150" />
+        <div className="relative w-11 h-11 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <Lock className="w-5 h-5 text-primary" />
+        </div>
       </div>
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-      <p className="text-xs text-muted-foreground max-w-xs">{description}</p>
+
+      {/* Text */}
+      <div className="space-y-1.5">
+        <p className="text-sm font-semibold text-foreground tracking-tight">{title}</p>
+        <p className="text-xs text-muted-foreground max-w-[220px] leading-relaxed">{description}</p>
+      </div>
+
+      {/* CTA */}
       <button
         onClick={onUpgrade}
-        className="bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-medium hover:opacity-90 transition-opacity"
+        className="relative group mt-1 px-5 py-2 rounded-xl text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5"
       >
         {t('upgrade_cta')}
       </button>
