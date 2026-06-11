@@ -10,16 +10,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000);
 const MAX_REQUESTS_PER_WINDOW = Number(process.env.MAX_REQUESTS_PER_WINDOW || 10);
 const MAX_REQUESTS_PER_DAY = Number(process.env.MAX_REQUESTS_PER_DAY || 200);
+const EXTERNAL_TIMEOUT_MS = 20_000;
 
+// In-memory store: secondary defense only — primary rate limiting is per user ID (verified via JWT)
 const requestStore = new Map();
-
-const getClientIp = (event) => {
-  const forwarded = event.headers['x-forwarded-for'] || event.headers['X-Forwarded-For'];
-  if (forwarded) {
-    return forwarded.split(',')[0].trim();
-  }
-  return event.headers['x-nf-client-connection-ip'] || 'unknown';
-};
 
 const now = () => Date.now();
 
@@ -58,31 +52,33 @@ const createAdminClient = () => {
     throw new Error('Missing Supabase service role configuration');
   }
   return createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { autoRefreshToken: false, persistSession: false },
-  realtime: { params: { eventsPerSecond: 0 } },
-});
+    auth: { autoRefreshToken: false, persistSession: false },
+    realtime: { params: { eventsPerSecond: 0 } },
+  });
 };
 
-// --- RAG: embedding zapytania przez Voyage (input_type "query") ---
+const fetchWithTimeout = (url, options) => {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), EXTERNAL_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
+};
+
+// RAG: embedding via Voyage (input_type "query")
 const embedQuery = async (text) => {
-  const res = await fetch('https://api.voyageai.com/v1/embeddings', {
+  const res = await fetchWithTimeout('https://api.voyageai.com/v1/embeddings', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.VOYAGE_API_KEY}`
     },
-    body: JSON.stringify({
-      model: 'voyage-3.5',
-      input: text,
-      input_type: 'query'
-    })
+    body: JSON.stringify({ model: 'voyage-3.5', input: text, input_type: 'query' })
   });
-  if (!res.ok) throw new Error(`Voyage: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(`Voyage embedding failed`);
   const data = await res.json();
   return data.data[0].embedding;
 };
 
-// --- RAG: pobranie kontekstu marki dla danego usera (service_role -> user_id jawnie) ---
+// RAG: fetch stored brand context for user
 const getBrandContext = async (supabaseAdmin, userId, brandName, query) => {
   try {
     const queryEmbedding = await embedQuery(query);
@@ -93,12 +89,12 @@ const getBrandContext = async (supabaseAdmin, userId, brandName, query) => {
       filter_brand: brandName
     });
     if (error) {
-      console.warn('match_brand_knowledge error', error);
+      console.warn('match_brand_knowledge error:', error.message);
       return '';
     }
     return (data || []).map((r) => r.content).join('\n\n---\n\n');
   } catch (err) {
-    console.warn('getBrandContext failed', err);
+    console.warn('getBrandContext failed:', err.message);
     return '';
   }
 };
@@ -108,27 +104,24 @@ export const handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  // Enforce payload size limit
+  if (event.body && event.body.length > 16 * 1024) {
+    return { statusCode: 413, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Payload too large' }) };
+  }
+
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
   const token = authHeader.toString().replace(/^Bearer\s+/i, '');
-  const ip = getClientIp(event);
-
-  let authedUser = null;
-  let supabaseAdmin = null;
 
   if (!token) {
-    if (shouldRateLimit(`ip:${ip}`)) {
-      return {
-        statusCode: 429,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: 'Too many requests. Spróbuj ponownie później.' })
-      };
-    }
     return {
       statusCode: 401,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ error: 'Unauthorized' })
     };
   }
+
+  let authedUser = null;
+  let supabaseAdmin = null;
 
   try {
     supabaseAdmin = createAdminClient();
@@ -142,6 +135,7 @@ export const handler = async (event) => {
     }
     authedUser = user;
 
+    // Rate limit by verified user ID — not spoofable
     if (shouldRateLimit(`user:${user.id}`)) {
       return {
         statusCode: 429,
@@ -150,26 +144,21 @@ export const handler = async (event) => {
       };
     }
   } catch (err) {
+    console.error('Auth error in analyze function');
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: `Authentication failed: ${String(err)}` })
+      body: JSON.stringify({ error: 'Authentication failed. Please try again.' })
     };
   }
 
   try {
     const { url } = JSON.parse(event.body || '{}');
-    const target = String(url || '').trim() || 'unknown brand';
+    const target = String(url || '').trim().slice(0, 500) || 'unknown brand';
     let parsed = null;
-
-    console.log('DEBUG analyze:', {
-      hasAnthropic: !!process.env.ANTHROPIC_API_KEY,
-      hasVoyage: !!process.env.VOYAGE_API_KEY,
-    });
 
     if (process.env.ANTHROPIC_API_KEY) {
       try {
-        // RAG: pobierz zapisaną wiedzę o tej marce dla zalogowanego usera
         const brandContext = await getBrandContext(
           supabaseAdmin,
           authedUser.id,
@@ -177,18 +166,13 @@ export const handler = async (event) => {
           `Analiza widoczności marki ${target}`
         );
 
-        console.log('DEBUG context:', {
-          len: brandContext?.length || 0,
-          preview: (brandContext || '').slice(0, 200)
-        });
-
         const systemPrompt = `You are a brand visibility analyst. Below is verified, user-provided knowledge about the brand and its competitors. Treat it as the authoritative context and prefer it over your general knowledge. If the section is empty or irrelevant, fall back to general knowledge and note that.
 
 <brand_context>
 ${brandContext || '(no stored knowledge for this brand)'}
 </brand_context>`;
 
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -207,7 +191,6 @@ ${brandContext || '(no stored knowledge for this brand)'}
         });
 
         const data = await response.json();
-        console.log('DEBUG anthropic raw:', JSON.stringify(data).slice(0, 500));
         let text = null;
         if (data?.content && Array.isArray(data.content) && data.content[0]) {
           text = (data.content[0].text || data.content[0]).toString();
@@ -223,12 +206,12 @@ ${brandContext || '(no stored knowledge for this brand)'}
           const cleaned = text.trim().replace(/```json|```/g, '').trim();
           try {
             parsed = JSON.parse(cleaned);
-          } catch (e) {
-            console.warn('Failed to parse model output as JSON', e);
+          } catch {
+            console.warn('Failed to parse model output as JSON');
           }
         }
       } catch (err) {
-        console.warn('Anthropic call failed, falling back to deterministic demo', err);
+        console.warn('Anthropic call failed, using deterministic fallback:', err.message);
       }
     }
 
@@ -245,21 +228,14 @@ ${brandContext || '(no stored knowledge for this brand)'}
       const mentions = next();
       const accuracy = next();
       const trustScore = Math.round((authority + sentiment + recency + mentions + accuracy) / 5);
-      const out = {
-        authority,
-        sentiment,
-        recency,
-        mentions,
-        accuracy,
-        trustScore,
+      return {
+        authority, sentiment, recency, mentions, accuracy, trustScore,
         sources: [
           { model: 'GPT-4o', sentiment: 'Positive', association: `${seed} product`, confidence: Math.round((authority + 5) % 100) },
           { model: 'Claude-sonnet-4-5', sentiment: 'Neutral', association: `${seed} brand`, confidence: Math.round((accuracy + 10) % 100) },
           { model: 'Gemini', sentiment: 'Positive', association: `${seed} mentions`, confidence: Math.round((mentions + 2) % 100) }
         ]
       };
-      console.warn('analyze deterministicResult for', seed, out);
-      return out;
     };
 
     const result = parsed || deterministicResult(target);
@@ -270,10 +246,11 @@ ${brandContext || '(no stored knowledge for this brand)'}
       body: JSON.stringify(result)
     };
   } catch (error) {
+    console.error('analyze handler error:', error.message);
     return {
       statusCode: 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: 'Analysis failed. Please try again.' })
     };
   }
 };

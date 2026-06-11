@@ -315,17 +315,9 @@ const Dashboard = () => {
             </form>
           </div>
 
-          {/* Brand knowledge form, more discreet */}
+          {/* Brand knowledge */}
           {status === 'completed' && (
-            <details className="group">
-              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors list-none flex items-center gap-2">
-                <span className="inline-block w-3 transition-transform group-open:rotate-90">›</span>
-                Wiedza o marce (kontekst dla analizy)
-              </summary>
-              <div className="mt-3">
-                <BrandKnowledgeForm brandName={inputValue} />
-              </div>
-            </details>
+            <BrandKnowledgeForm brandName={inputValue} />
           )}
         </header>
 

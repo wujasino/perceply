@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, User, Bell, Shield, Trash2, Moon, Globe, ChevronRight, Save,
-  Upload, Camera, Loader2,
+  Upload, Camera, Loader2, KeyRound, Copy, Check, Mail,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +12,13 @@ import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
-type Tab = 'account' | 'appearance' | 'notifications' | 'privacy' | 'danger';
+type Tab = 'account' | 'appearance' | 'notifications' | 'security' | 'privacy' | 'danger';
 
 const tabs: { id: Tab; labelKey: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'account',       labelKey: 'settings_tab_account',       icon: User },
   { id: 'appearance',    labelKey: 'settings_tab_appearance',    icon: Moon },
   { id: 'notifications', labelKey: 'settings_tab_notifications', icon: Bell },
+  { id: 'security',      labelKey: 'settings_tab_security',      icon: KeyRound },
   { id: 'privacy',       labelKey: 'settings_tab_privacy',       icon: Shield },
   { id: 'danger',        labelKey: 'settings_tab_danger',        icon: Trash2 },
 ];
@@ -41,6 +42,12 @@ export default function Settings() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Security tab
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -68,35 +75,54 @@ export default function Settings() {
     }
 
     setUploading(true);
-    const localPreview = URL.createObjectURL(file);
-    setAvatarUrl(localPreview);
+
+    // Show instant local preview while uploading
+    const blobUrl = URL.createObjectURL(file);
+    setAvatarUrl(blobUrl);
 
     try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
-      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+      if (!ALLOWED_EXTS.includes(ext)) {
+        throw new Error(t('settings_avatar_invalid_type'));
+      }
+      // Always overwrite the same path — avoids orphaned files in storage
+      const storagePath = `${userId}/avatar.${ext}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (uploadError) throw uploadError;
+        .upload(storagePath, file, { upsert: true, contentType: file.type });
+      if (storageError) throw storageError;
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-      const publicUrl = data.publicUrl;
+      // Add cache-busting so the browser doesn't show stale image
+      const { data } = supabase.storage.from('avatars').getPublicUrl(storagePath);
+      const publicUrl = `${data.publicUrl}?t=${Date.now()}`;
 
-      // Persist on user_metadata so Navbar/Avatar picks it up
+      // Update auth user_metadata
       const { error: authError } = await supabase.auth.updateUser({
         data: { avatar_url: publicUrl },
       });
       if (authError) throw authError;
 
-      // Best-effort mirror to profiles table
+      // Refresh session so the updated JWT / metadata is returned by getUser()
+      await supabase.auth.refreshSession();
+
+      // Mirror to profiles table (best-effort)
       await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId);
 
+      URL.revokeObjectURL(blobUrl);
       setAvatarUrl(publicUrl);
-    } catch (err) {
-      console.error(err);
-      setUploadError(t('settings_avatar_upload_error'));
+    } catch (err: any) {
+      console.error('Avatar upload error:', err);
+      URL.revokeObjectURL(blobUrl);
       setAvatarUrl(null);
+      setUploadError(
+        err?.message?.includes('Bucket not found')
+          ? 'Bucket "avatars" nie istnieje w Supabase Storage. Uruchom migrację SQL.'
+          : err?.message?.includes('row-level security')
+          ? 'Brak uprawnień do zapisu. Sprawdź polityki RLS bucketa "avatars".'
+          : t('settings_avatar_upload_error')
+      );
     } finally {
       setUploading(false);
     }
@@ -107,8 +133,11 @@ export default function Settings() {
     setUploading(true);
     try {
       await supabase.auth.updateUser({ data: { avatar_url: null } });
+      await supabase.auth.refreshSession();
       await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId);
       setAvatarUrl(null);
+    } catch (err) {
+      console.error('Avatar remove error:', err);
     } finally {
       setUploading(false);
     }
@@ -116,10 +145,49 @@ export default function Settings() {
 
   const handleSave = async () => {
     setSaving(true);
-    await supabase.auth.updateUser({ data: { full_name: displayName } });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      const { error } = await supabase.auth.updateUser({ data: { full_name: displayName } });
+      if (error) throw error;
+      await supabase.auth.refreshSession();
+      await supabase.from('profiles').update({ full_name: displayName }).eq('id', userId);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Save error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSendReset = async () => {
+    if (!email) return;
+    setResetLoading(true);
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setResetLoading(false);
+    setResetSent(true);
+  };
+
+  const handleViewRecoveryCode = async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from('recovery_codes')
+      .select('code_hash, created_at')
+      .eq('user_id', userId)
+      .single();
+    if (data) {
+      // We only show that a code exists + when it was generated (not the plain code — it's hashed)
+      setRecoveryCode(data.created_at);
+    } else {
+      setRecoveryCode('none');
+    }
+  };
+
+  const copyResetLink = async () => {
+    await navigator.clipboard.writeText(`${window.location.origin}/reset-password`);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
   };
 
   const handleDeleteAccount = async () => {
@@ -394,6 +462,105 @@ export default function Settings() {
                       </button>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* ── SECURITY ── */}
+              {activeTab === 'security' && (
+                <div className="space-y-5">
+
+                  {/* Reset password */}
+                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <KeyRound className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Resetuj hasło</p>
+                        <p className="text-xs text-muted-foreground">
+                          Wyślemy link resetujący na adres <strong>{email}</strong>
+                        </p>
+                      </div>
+                    </div>
+
+                    {resetSent ? (
+                      <div className="flex items-center gap-2 text-sm text-green-500 bg-green-500/10 rounded-lg px-3 py-2">
+                        <Check className="w-4 h-4 shrink-0" />
+                        Email wysłany! Sprawdź swoją skrzynkę i kliknij link.
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={resetLoading}
+                        onClick={handleSendReset}
+                        className="w-full"
+                      >
+                        {resetLoading ? (
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <Mail className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        Wyślij link resetujący
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Recovery code info */}
+                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Shield className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Kod zapasowy</p>
+                        <p className="text-xs text-muted-foreground">
+                          Generowany po każdym resecie hasła. Pozwala odzyskać dostęp do konta.
+                        </p>
+                      </div>
+                    </div>
+
+                    {recoveryCode === null && (
+                      <Button size="sm" variant="outline" className="w-full" onClick={handleViewRecoveryCode}>
+                        <Shield className="w-3.5 h-3.5 mr-1.5" />
+                        Sprawdź status kodu
+                      </Button>
+                    )}
+                    {recoveryCode === 'none' && (
+                      <p className="text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
+                        Brak kodu zapasowego. Zresetuj hasło — po resecie otrzymasz nowy kod.
+                      </p>
+                    )}
+                    {recoveryCode && recoveryCode !== 'none' && (
+                      <div className="text-xs text-muted-foreground bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-2 space-y-1">
+                        <p className="flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium">
+                          <Check className="w-3.5 h-3.5" /> Kod zapasowy aktywny
+                        </p>
+                        <p>Wygenerowany: {new Date(recoveryCode).toLocaleDateString('pl-PL', { dateStyle: 'medium' })}</p>
+                        <p>Kod jest zaszyfrowany — jego treść widzisz tylko bezpośrednio po resecie hasła.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Reset link shortcut */}
+                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
+                    <p className="text-sm font-medium text-foreground">Link do strony resetu</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 text-xs bg-muted rounded-lg px-3 py-2 text-muted-foreground truncate">
+                        {window.location.origin}/reset-password
+                      </code>
+                      <button
+                        onClick={copyResetLink}
+                        className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                        aria-label="Kopiuj link"
+                      >
+                        {codeCopied
+                          ? <Check className="w-3.5 h-3.5 text-green-500" />
+                          : <Copy className="w-3.5 h-3.5 text-primary" />}
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               )}
 

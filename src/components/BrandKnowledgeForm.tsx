@@ -1,128 +1,258 @@
-import { useState } from "react";
-import { supabase } from "../lib/supabase"; // <-- DOPASUJ ścieżkę do swojego klienta Supabase
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, Plus, Trash2, Loader2, CheckCircle2, AlertCircle, ChevronDown, ChevronUp, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
+
+interface Fragment {
+  id: string;
+  content: string;
+  created_at: string;
+}
 
 interface BrandKnowledgeFormProps {
-  brandName: string; // przekazywane ze strony analizy (zmienna stanu z pola marki)
+  brandName: string;
 }
 
 export default function BrandKnowledgeForm({ brandName }: BrandKnowledgeFormProps) {
-  const [text, setText] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
-  const [message, setMessage] = useState("");
+  const [text, setText] = useState('');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+  const [fragments, setFragments] = useState<Fragment[]>([]);
+  const [loadingFragments, setLoadingFragments] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [expandedFragment, setExpandedFragment] = useState<string | null>(null);
 
-  async function handleSave() {
-    if (!brandName.trim()) {
-      setStatus("error");
-      setMessage("Najpierw wpisz nazwę marki powyżej.");
-      return;
+  const loadFragments = useCallback(async () => {
+    if (!brandName.trim()) return;
+    setLoadingFragments(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('brand_knowledge')
+        .select('id, content, created_at')
+        .eq('user_id', user.id)
+        .eq('brand_name', brandName.trim())
+        .order('created_at', { ascending: false });
+      setFragments(data ?? []);
+    } finally {
+      setLoadingFragments(false);
     }
-    if (text.trim().length < 20) {
-      setStatus("error");
-      setMessage("Dodaj trochę więcej treści (min. 20 znaków).");
-      return;
-    }
+  }, [brandName]);
 
-    setStatus("loading");
-    setMessage("");
+  useEffect(() => {
+    loadFragments();
+  }, [loadFragments]);
 
+  const handleSave = async () => {
+    if (!brandName.trim()) { setStatus('error'); setMessage('Najpierw wpisz nazwę marki.'); return; }
+    if (text.trim().length < 20) { setStatus('error'); setMessage('Min. 20 znaków.'); return; }
+
+    setStatus('loading');
+    setMessage('');
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Musisz być zalogowany.");
+      if (!session) throw new Error('Musisz być zalogowany.');
 
-      const res = await fetch("/.netlify/functions/ingest-knowledge", {
-        method: "POST",
+      const res = await fetch('/.netlify/functions/ingest-knowledge', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ brandName, text }),
       });
 
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Błąd zapisu.");
+      if (!res.ok) throw new Error(result.error || 'Błąd zapisu.');
 
-      setStatus("ok");
-      setMessage(`Zapisano ${result.inserted} fragment(ów) wiedzy.`);
-      setText("");
+      setStatus('ok');
+      setMessage(`Zapisano ${result.inserted} fragment(ów).`);
+      setText('');
+      await loadFragments();
+      setTimeout(() => { setStatus('idle'); setMessage(''); }, 3000);
     } catch (err) {
-      setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Nieznany błąd.");
+      setStatus('error');
+      setMessage(err instanceof Error ? err.message : 'Nieznany błąd.');
     }
-  }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await supabase.from('brand_knowledge').delete().eq('id', id);
+      setFragments(prev => prev.filter(f => f.id !== id));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const charCount = text.length;
+  const isValid = text.trim().length >= 20;
 
   return (
-    <div
-      style={{
-        background: "#1a1a1a",
-        border: "1px solid #2a2a2a",
-        borderRadius: 12,
-        padding: 20,
-        marginTop: 16,
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden"
     >
-      <label
-        style={{
-          display: "block",
-          color: "#D4A017",
-          fontWeight: 600,
-          marginBottom: 8,
-          fontSize: 14,
-        }}
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors"
       >
-        Wiedza o marce / konkurencji (kontekst dla analizy)
-      </label>
-      <p style={{ color: "#888", fontSize: 13, marginBottom: 12 }}>
-        Wklej opis, pozycjonowanie, fakty o marce. Analiza użyje tego jako
-        zweryfikowanego kontekstu zamiast polegać tylko na wiedzy ogólnej modelu.
-      </p>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4 h-4 text-primary" />
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-medium text-foreground">Baza wiedzy o marce</p>
+            <p className="text-xs text-muted-foreground">
+              {loadingFragments ? 'Ładowanie…' : `${fragments.length} fragment${fragments.length === 1 ? '' : fragments.length < 5 ? 'y' : 'ów'} · ${brandName}`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {fragments.length > 0 && (
+            <span className="w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center">
+              {fragments.length}
+            </span>
+          )}
+          {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        </div>
+      </button>
 
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Np. Marka X to producent... założony w... ich flagowy produkt to..."
-        rows={5}
-        style={{
-          width: "100%",
-          background: "#0f0f0f",
-          border: "1px solid #2a2a2a",
-          borderRadius: 8,
-          color: "#eee",
-          padding: 12,
-          fontSize: 14,
-          resize: "vertical",
-          boxSizing: "border-box",
-        }}
-      />
-
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12 }}>
-        <button
-          onClick={handleSave}
-          disabled={status === "loading"}
-          style={{
-            background: "#D4A017",
-            color: "#0f0f0f",
-            border: "none",
-            borderRadius: 8,
-            padding: "10px 20px",
-            fontWeight: 600,
-            cursor: status === "loading" ? "default" : "pointer",
-            opacity: status === "loading" ? 0.6 : 1,
-          }}
-        >
-          {status === "loading" ? "Zapisywanie..." : "Zapisz wiedzę"}
-        </button>
-
-        {message && (
-          <span
-            style={{
-              fontSize: 13,
-              color: status === "ok" ? "#4ade80" : status === "error" ? "#f87171" : "#888",
-            }}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
           >
-            {message}
-          </span>
+            <div className="px-5 pb-5 space-y-5 border-t border-[hsl(var(--glass-border))]">
+
+              {/* Add new fragment */}
+              <div className="pt-4 space-y-3">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Wklej opis, pozycjonowanie, fakty o marce. Analiza użyje tego jako zweryfikowanego kontekstu zamiast polegać tylko na wiedzy ogólnej modelu.
+                </p>
+                <div className="relative">
+                  <textarea
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    placeholder="Np. Marka X to producent... założony w... ich flagowy produkt to... wartości to..."
+                    rows={4}
+                    className="w-full bg-background/60 border border-[hsl(var(--glass-border))] rounded-xl text-sm text-foreground placeholder:text-muted-foreground/50 px-4 py-3 resize-none focus:outline-none focus:border-primary/40 transition-colors"
+                  />
+                  <span className={cn(
+                    'absolute bottom-2.5 right-3 text-[10px] font-data',
+                    charCount > 2000 ? 'text-destructive' : 'text-muted-foreground/40'
+                  )}>
+                    {charCount}/2000
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={handleSave}
+                    disabled={status === 'loading' || !isValid || charCount > 2000}
+                    size="sm"
+                    className="gap-1.5"
+                  >
+                    {status === 'loading'
+                      ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Zapisywanie…</>
+                      : <><Plus className="w-3.5 h-3.5" /> Dodaj fragment</>}
+                  </Button>
+
+                  <AnimatePresence mode="wait">
+                    {message && (
+                      <motion.span
+                        key={message}
+                        initial={{ opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0 }}
+                        className={cn(
+                          'flex items-center gap-1.5 text-xs',
+                          status === 'ok' ? 'text-emerald-400' : 'text-destructive'
+                        )}
+                      >
+                        {status === 'ok'
+                          ? <CheckCircle2 className="w-3.5 h-3.5" />
+                          : <AlertCircle className="w-3.5 h-3.5" />}
+                        {message}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Saved fragments */}
+              {fragments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground/60 pt-1">
+                    Zapisane fragmenty
+                  </p>
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {fragments.map(fragment => (
+                      <div
+                        key={fragment.id}
+                        className="rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 p-3 group"
+                      >
+                        <div className="flex items-start gap-2.5">
+                          <FileText className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className={cn(
+                              'text-xs text-foreground/80 leading-relaxed whitespace-pre-wrap break-words',
+                              expandedFragment !== fragment.id && 'line-clamp-2'
+                            )}>
+                              {fragment.content}
+                            </p>
+                            {fragment.content.length > 120 && (
+                              <button
+                                onClick={() => setExpandedFragment(expandedFragment === fragment.id ? null : fragment.id)}
+                                className="text-[10px] text-primary hover:underline mt-1"
+                              >
+                                {expandedFragment === fragment.id ? 'Zwiń' : 'Rozwiń'}
+                              </button>
+                            )}
+                            <p className="text-[10px] text-muted-foreground/40 mt-1.5 font-data">
+                              {new Date(fragment.created_at).toLocaleDateString('pl-PL', { dateStyle: 'medium' })}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(fragment.id)}
+                            disabled={deletingId === fragment.id}
+                            className="shrink-0 w-6 h-6 rounded-md opacity-0 group-hover:opacity-100 hover:bg-destructive/10 flex items-center justify-center transition-all"
+                            aria-label="Usuń fragment"
+                          >
+                            {deletingId === fragment.id
+                              ? <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+                              : <Trash2 className="w-3 h-3 text-destructive/70" />}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!loadingFragments && fragments.length === 0 && (
+                <div className="text-center py-4">
+                  <p className="text-xs text-muted-foreground/50">
+                    Brak zapisanej wiedzy dla „{brandName}". Dodaj pierwszy fragment powyżej.
+                  </p>
+                </div>
+              )}
+
+            </div>
+          </motion.div>
         )}
-      </div>
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }

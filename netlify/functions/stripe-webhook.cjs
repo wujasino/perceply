@@ -6,9 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-// Map Stripe Payment Link URLs → how many credits to add.
-// The URL stored in the env is the full buy.stripe.com link; we compare
-// the path segment so we're not sensitive to query-string noise.
 const CREDIT_LINKS = {
   [process.env.VITE_STRIPE_CREDITS_20]:  20,
   [process.env.VITE_STRIPE_CREDITS_50]:  50,
@@ -17,8 +14,6 @@ const CREDIT_LINKS = {
 
 function creditsFromPaymentLink(paymentLink) {
   if (!paymentLink) return 0;
-  // paymentLink is e.g. "plink_1ABC..." (the object id) when Stripe sends it,
-  // or the full URL. Match against the last path segment of our env URLs.
   for (const [url, credits] of Object.entries(CREDIT_LINKS)) {
     if (!url) continue;
     try {
@@ -48,25 +43,45 @@ module.exports.handler = async (event) => {
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object;
 
+    // Idempotency: skip already-processed events
+    const { data: existing } = await supabase
+      .from('webhook_events')
+      .select('id')
+      .eq('stripe_event_id', stripeEvent.id)
+      .maybeSingle();
+
+    if (existing) {
+      return { statusCode: 200, body: JSON.stringify({ received: true, duplicate: true }) };
+    }
+
+    // Record event first to prevent double-processing on retry
+    await supabase.from('webhook_events').insert({ stripe_event_id: stripeEvent.id });
+
     // ── Credit pack purchased via Payment Link ──────────────────────────────
-    // client_reference_id holds the Supabase user.id we attached in Pricing.tsx
     const userId = session.client_reference_id || session.metadata?.userId;
     const creditsToAdd = creditsFromPaymentLink(session.payment_link);
 
     if (creditsToAdd > 0 && userId) {
-      // Fetch current credits so we can increment atomically via RPC or manually
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .single();
+      // Use RPC for atomic increment to avoid race conditions
+      const { error } = await supabase.rpc('increment_credits', {
+        p_user_id: userId,
+        p_amount: creditsToAdd,
+      });
 
-      const currentCredits = profile?.credits ?? 0;
+      if (error) {
+        console.error('increment_credits RPC error:', error.message);
+        // Fall back to read-then-write
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('credits')
+          .eq('id', userId)
+          .single();
 
-      await supabase
-        .from('profiles')
-        .update({ credits: currentCredits + creditsToAdd })
-        .eq('id', userId);
+        await supabase
+          .from('profiles')
+          .update({ credits: (profile?.credits ?? 0) + creditsToAdd })
+          .eq('id', userId);
+      }
 
       return { statusCode: 200, body: JSON.stringify({ received: true, credits_added: creditsToAdd }) };
     }

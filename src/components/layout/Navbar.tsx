@@ -35,6 +35,7 @@ export const Navbar = () => {
   const [isAuthed, setIsAuthed] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const { t } = useTranslation();
 
@@ -52,12 +53,14 @@ export const Navbar = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthed(!!session);
       setUserEmail(session?.user?.email ?? null);
+      setUserName(session?.user?.user_metadata?.full_name ?? null);
       setUserAvatar(session?.user?.user_metadata?.avatar_url ?? null);
       setAuthLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsAuthed(!!session);
       setUserEmail(session?.user?.email ?? null);
+      setUserName(session?.user?.user_metadata?.full_name ?? null);
       setUserAvatar(session?.user?.user_metadata?.avatar_url ?? null);
       setAuthLoading(false);
     });
@@ -66,8 +69,10 @@ export const Navbar = () => {
 
   const navLinks = isAuthed ? authedLinks : publicLinks;
 
-  // Initials fallback: first letter of email or "?"
-  const initials = userEmail ? userEmail[0].toUpperCase() : '?';
+  // Initials: from display name if set, otherwise first letter of email
+  const initials = userName
+    ? userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : userEmail ? userEmail[0].toUpperCase() : '?';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-[hsl(var(--glass-border))] bg-background/80 backdrop-blur-xl">
@@ -214,7 +219,10 @@ export const Navbar = () => {
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-52 p-2">
                     <div className="px-2 py-1.5 mb-1">
-                      <p className="text-xs font-medium text-foreground truncate">{userEmail}</p>
+                      {userName && (
+                        <p className="text-xs font-semibold text-foreground truncate">{userName}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
                     </div>
                     <div className="h-px bg-border mb-1" />
                     <Link
