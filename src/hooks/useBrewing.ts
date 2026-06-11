@@ -59,11 +59,15 @@ const normalizeSentiment = (s: unknown): SourceResult['sentiment'] => {
   return 'Neutral';
 };
 
+export const GUEST_CREDITS_KEY = 'guestCredits';
+export const GUEST_LIMIT = 3;
+
 export function useBrewing() {
   const { t } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<'idle' | 'brewing' | 'completed'>('idle');
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [guestLimitReached, setGuestLimitReached] = useState(false);
 
   const startBrewing = useCallback(async (brandName: string) => {
 
@@ -78,11 +82,12 @@ export function useBrewing() {
           localStorage.setItem(key, String(credits));
         }
         if (credits <= 0) {
-          alert(t('no_credits_guest') || 'You have no credits left. Register to get more.');
+          setGuestLimitReached(true);
           return;
         }
         // consume one credit for this brew
         localStorage.setItem(key, String(credits - 1));
+        if (credits - 1 <= 0) setGuestLimitReached(true);
       }
     } catch (err) {
       // If auth check fails for any reason, allow the brew but don't modify credits
@@ -400,7 +405,7 @@ export function useBrewing() {
     return view;
   }, []);
 
-  return { progress, status, result, startBrewing, reset, loadStoredAnalysis };
+  return { progress, status, result, startBrewing, reset, loadStoredAnalysis, guestLimitReached };
 }
 
 const mapSentimentLabel = (v: number): 'Positive' | 'Neutral' | 'Negative' => {
