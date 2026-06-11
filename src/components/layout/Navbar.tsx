@@ -18,6 +18,7 @@ import { logout } from '@/lib/auth';
 
 const publicLinks = [
   { to: '/', key: 'home' },
+  { to: '/dashboard', key: 'dashboard' },
   { to: '/pricing', key: 'pricing' },
 ];
 

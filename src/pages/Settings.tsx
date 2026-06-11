@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, User, Bell, Shield, Trash2, Moon, Globe, ChevronRight, Save,
-  Upload, Camera, Loader2, KeyRound, Copy, Check, Mail,
+  Upload, Camera, Loader2, KeyRound, Copy, Check, Mail, ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -543,23 +543,15 @@ export default function Settings() {
                   </div>
 
                   {/* Reset link shortcut */}
-                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
-                    <p className="text-sm font-medium text-foreground">Link do strony resetu</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-xs bg-muted rounded-lg px-3 py-2 text-muted-foreground truncate">
-                        {window.location.origin}/reset-password
-                      </code>
-                      <button
-                        onClick={copyResetLink}
-                        className="shrink-0 w-8 h-8 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                        aria-label="Kopiuj link"
-                      >
-                        {codeCopied
-                          ? <Check className="w-3.5 h-3.5 text-green-500" />
-                          : <Copy className="w-3.5 h-3.5 text-primary" />}
-                      </button>
-                    </div>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => window.open(`${window.location.origin}/reset-password`, '_blank')}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Przejdź do strony resetu hasła
+                  </Button>
 
                 </div>
               )}

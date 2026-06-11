@@ -59,34 +59,34 @@ const normalizeSentiment = (s: unknown): SourceResult['sentiment'] => {
   return 'Neutral';
 };
 
+export const GUEST_LIMIT = 3;
+
 export function useBrewing() {
   const { t } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<'idle' | 'brewing' | 'completed'>('idle');
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [guestLimitReached, setGuestLimitReached] = useState(false);
 
   const startBrewing = useCallback(async (brandName: string) => {
 
-    // Check auth first: if user is not authenticated, enforce guest credits
+    // Check auth: if not logged in, enforce IP-based guest limit
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        const key = 'guestCredits';
-        let credits = Number(localStorage.getItem(key));
-        if (!Number.isFinite(credits) || credits < 0) {
-          credits = 3;
-          localStorage.setItem(key, String(credits));
+        const res = await fetch('/.netlify/functions/guest-limit', { method: 'POST' });
+        if (res.ok) {
+          const { allowed, remaining } = await res.json();
+          if (!allowed) {
+            setGuestLimitReached(true);
+            return;
+          }
+          if (remaining <= 0) setGuestLimitReached(true);
         }
-        if (credits <= 0) {
-          alert(t('no_credits_guest') || 'You have no credits left. Register to get more.');
-          return;
-        }
-        // consume one credit for this brew
-        localStorage.setItem(key, String(credits - 1));
+        // If function unreachable — fail open (allow brew)
       }
-    } catch (err) {
-      // If auth check fails for any reason, allow the brew but don't modify credits
-      console.warn('Auth check failed, proceeding without consuming guest credits', err);
+    } catch {
+      // Network error — allow the brew
     }
 
     setStatus('brewing');
@@ -400,7 +400,7 @@ export function useBrewing() {
     return view;
   }, []);
 
-  return { progress, status, result, startBrewing, reset, loadStoredAnalysis };
+  return { progress, status, result, startBrewing, reset, loadStoredAnalysis, guestLimitReached };
 }
 
 const mapSentimentLabel = (v: number): 'Positive' | 'Neutral' | 'Negative' => {

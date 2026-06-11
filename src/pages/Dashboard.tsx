@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, TrendingUp, TrendingDown, Activity, Layers, Target, RefreshCw, Search } from 'lucide-react';
+import { ArrowLeft, Sparkles, TrendingUp, TrendingDown, Activity, Layers, Target, RefreshCw, Search, Lock } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { useTranslation } from '@/lib/locale';
 import { BrewingProgress } from '@/components/BrewingState';
@@ -211,7 +211,7 @@ const Dashboard = () => {
   const t = useTranslation().t;
   const analysisId = searchParams.get('id');
   const brandFromUrl = searchParams.get('brand') || 'Tesla';
-  const { progress, status, result, startBrewing, reset, loadStoredAnalysis } = useBrewing();
+  const { progress, status, result, startBrewing, reset, loadStoredAnalysis, guestLimitReached } = useBrewing();
   const displayBrand = result?.brandName || brandFromUrl;
   const [inputValue, setInputValue] = useState(brandFromUrl);
   const [plan, setPlan] = useState<string>('free');
@@ -318,6 +318,39 @@ const Dashboard = () => {
           {/* Brand knowledge */}
           {status === 'completed' && (
             <BrandKnowledgeForm brandName={inputValue} />
+          )}
+
+          {/* Guest limit banner */}
+          {guestLimitReached && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center gap-3"
+            >
+              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                <Lock className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">Wykorzystałeś wszystkie bezpłatne analizy</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Darmowe konto pozwala na 3 analizy. Zarejestruj się lub wybierz plan, aby kontynuować.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to="/register"
+                  className="text-xs font-medium px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  Zarejestruj się
+                </Link>
+                <Link
+                  to="/pricing"
+                  className="text-xs font-medium px-3 py-1.5 rounded-lg border border-[hsl(var(--glass-border))] text-foreground hover:bg-muted/40 transition-colors"
+                >
+                  Zobacz plany
+                </Link>
+              </div>
+            </motion.div>
           )}
         </header>
 
