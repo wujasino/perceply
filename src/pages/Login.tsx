@@ -36,7 +36,7 @@ const Login = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname || '/dashboard';
+  const from = (location.state as { from?: { pathname: string } } | null)?.from?.pathname || '/profile';
 
   const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
@@ -61,10 +61,14 @@ const Login = () => {
     if (!resetEmail.trim()) return;
     setResetLoading(true);
     setError('');
-    await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setResetLoading(false);
+    if (resetError) {
+      setError(resetError.message || 'Błąd wysyłania e-maila. Spróbuj ponownie.');
+      return;
+    }
     switchMode('forgot_sent', 1);
   };
 
@@ -172,10 +176,19 @@ const Login = () => {
       {/* ── Right panel (form) ── */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 overflow-hidden">
         <div className="w-full max-w-[400px]">
-          {/* Mobile logo */}
-          <Link to="/" className="lg:hidden flex items-center mb-6">
-            <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
-          </Link>
+          {/* Top bar: mobile logo + back button */}
+          <div className="flex items-center justify-between mb-6 lg:mb-4">
+            <Link to="/" className="lg:hidden flex items-center">
+              <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
+            </Link>
+            <Link
+              to="/"
+              className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Strona główna
+            </Link>
+          </div>
 
           <AnimatePresence mode="wait" custom={dir}>
             {/* ── LOGIN ── */}
