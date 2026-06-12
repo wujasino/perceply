@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/lib/locale';
-import { Eye, EyeOff, ArrowRight, CheckCircle2, Circle, Mail } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, CheckCircle2, Circle, Mail, ArrowLeft } from 'lucide-react';
 import { registerUser, loginWithGoogle } from '@/lib/auth';
 import { FloatingPathsBackground } from '@/components/ui/floating-paths';
 import { cn } from '@/lib/utils';
@@ -208,10 +208,19 @@ const Register = () => {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="w-full max-w-[400px] space-y-5"
         >
-          {/* Mobile logo */}
-          <Link to="/" className="lg:hidden flex items-center mb-2">
-            <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
-          </Link>
+          {/* Top bar: mobile logo + back button */}
+          <div className="flex items-center justify-between mb-2">
+            <Link to="/" className="lg:hidden flex items-center">
+              <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
+            </Link>
+            <Link
+              to="/"
+              className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Strona główna
+            </Link>
+          </div>
 
           <div>
             <h1 className="text-2xl font-display text-foreground">{t('register')}</h1>
