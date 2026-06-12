@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Potwierdź nowy adres e-mail — BitBrew</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f0f0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0f0f0f;">
+    <tr>
+      <td align="center" style="padding:48px 16px;">
+
+        <!-- Card -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background-color:#1a1a1a;border-radius:16px;border:1px solid #2a2a2a;overflow:hidden;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:32px 40px 24px;border-bottom:1px solid #2a2a2a;text-align:center;">
+              <img
+                src="https://bitbrew.pl/android-chrome-192.png"
+                alt="BitBrew"
+                width="48"
+                height="48"
+                style="display:inline-block;border-radius:10px;margin-bottom:12px;"
+              />
+              <div style="font-size:20px;font-weight:700;color:#F7F1DD;letter-spacing:-0.3px;">BitBrew</div>
+              <div style="font-size:11px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:1px;">AI Brand Intelligence</div>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:36px 40px 28px;">
+
+              <!-- Icon -->
+              <div style="text-align:center;margin-bottom:28px;">
+                <div style="display:inline-block;width:56px;height:56px;border-radius:14px;background-color:#0e1520;border:1px solid #3b82f630;text-align:center;line-height:56px;">
+                  <span style="font-size:26px;">📧</span>
+                </div>
+              </div>
+
+              <!-- Heading -->
+              <h1 style="margin:0 0 10px;font-size:22px;font-weight:700;color:#F7F1DD;text-align:center;letter-spacing:-0.3px;">Potwierdź nowy adres e-mail</h1>
+              <p style="margin:0 0 24px;font-size:14px;line-height:1.65;color:#888;text-align:center;">
+                Otrzymaliśmy prośbę o zmianę adresu e-mail<br/>powiązanego z Twoim kontem BitBrew.
+              </p>
+
+              <!-- New email box -->
+              <div style="background-color:#141414;border:1px solid #2a2a2a;border-radius:10px;padding:14px 18px;margin-bottom:28px;text-align:center;">
+                <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nowy adres e-mail</div>
+                <div style="font-size:15px;font-weight:600;color:#D4A017;">{{ .NewEmail }}</div>
+              </div>
+
+              <!-- CTA Button -->
+              <div style="text-align:center;margin-bottom:28px;">
+                <a
+                  href="{{ .ConfirmationURL }}"
+                  style="display:inline-block;padding:13px 32px;background-color:#D4A017;color:#0f0f0f;font-size:14px;font-weight:700;text-decoration:none;border-radius:10px;letter-spacing:0.2px;"
+                >
+                  Potwierdź zmianę e-maila →
+                </a>
+              </div>
+
+              <!-- Divider -->
+              <div style="border-top:1px solid #2a2a2a;margin:24px 0;"></div>
+
+              <!-- Link fallback -->
+              <p style="margin:0 0 8px;font-size:12px;color:#555;text-align:center;">
+                Jeśli przycisk nie działa, skopiuj ten link do przeglądarki:
+              </p>
+              <p style="margin:0 0 24px;font-size:11px;color:#D4A017;text-align:center;word-break:break-all;">
+                {{ .ConfirmationURL }}
+              </p>
+
+              <!-- Warning -->
+              <div style="background-color:#1a0e0e;border:1px solid #ef444430;border-radius:10px;padding:14px 16px;">
+                <p style="margin:0;font-size:12px;color:#888;line-height:1.6;">
+                  🔒 <strong style="color:#f87171;">Nie wysyłałeś tej prośby?</strong>
+                  Natychmiast zmień hasło do konta lub skontaktuj się z nami —
+                  ktoś mógł uzyskać dostęp do Twojego konta.
+                </p>
+              </div>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:20px 40px 28px;border-top:1px solid #2a2a2a;text-align:center;">
+              <p style="margin:0 0 6px;font-size:11px;color:#444;">
+                Wiadomość wysłana automatycznie przez
+                <a href="https://bitbrew.pl" style="color:#D4A017;text-decoration:none;">BitBrew</a>
+              </p>
+              <p style="margin:0;font-size:11px;color:#333;">
+                © 2024 BitBrew · Wszystkie prawa zastrzeżone
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
