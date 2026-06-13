@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,21 @@ const FEATURES = [
   { icon: BarChart3, text: 'Śledzenie trendu sentymentu w czasie'       },
   { icon: Shield,    text: 'Wiarygodność źródeł z wynikiem pewności'   },
 ];
+
+const pwdRules = [
+  { label: 'Min. 8 znaków',  test: (p: string) => p.length >= 8 },
+  { label: 'Wielka litera',  test: (p: string) => /[A-Z]/.test(p) },
+  { label: 'Cyfra',          test: (p: string) => /[0-9]/.test(p) },
+  { label: 'Znak specjalny', test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+];
+
+function getPwdStrength(p: string) {
+  if (!p) return 0;
+  return pwdRules.filter(r => r.test(p)).length;
+}
+
+const strengthLabel = ['', 'Słabe', 'Słabe', 'Średnie', 'Silne'];
+const strengthColor = ['', 'bg-red-500', 'bg-red-500', 'bg-yellow-500', 'bg-green-500'];
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir * 40, opacity: 0 }),
@@ -102,6 +117,8 @@ const Login = () => {
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [notice, setNotice]         = useState('');
   const [dir, setDir]               = useState(1);
+
+  const newPwdStrength = useMemo(() => getPwdStrength(newPwd), [newPwd]);
 
   const switchMode = (next: typeof mode, direction = 1) => {
     setDir(direction);
@@ -255,7 +272,7 @@ const Login = () => {
         className="hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between p-10 border-r border-[hsl(var(--glass-border))] bg-card/30"
       >
         <Link to="/" className="flex items-center w-fit">
-          <img src="/bitbrew-logo.svg" alt="BitBrew" height="28" className="h-7" />
+          <img src="/bitbrew-logo-cream.svg" alt="BitBrew" height="28" className="h-7" />
         </Link>
 
         <div className="space-y-8">
@@ -303,7 +320,7 @@ const Login = () => {
           {/* Top bar: mobile logo + back button */}
           <div className="flex items-center justify-between mb-6 lg:mb-4">
             <Link to="/" className="lg:hidden flex items-center">
-              <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
+              <img src="/bitbrew-logo-cream.svg" alt="BitBrew" className="h-6" />
             </Link>
             <Link
               to="/"
@@ -507,6 +524,28 @@ const Login = () => {
                         {showNewPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    {newPwd.length > 0 && (
+                      <div className="space-y-2 pt-1">
+                        <div className="flex gap-1 h-1">
+                          {[1,2,3,4].map(i => (
+                            <div key={i} className={`flex-1 rounded-full transition-colors ${i <= newPwdStrength ? strengthColor[newPwdStrength] : 'bg-muted/30'}`} />
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                          {pwdRules.map(({ label, test }) => {
+                            const ok = test(newPwd);
+                            return (
+                              <div key={label} className="flex items-center gap-1.5">
+                                {ok
+                                  ? <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
+                                  : <Circle className="w-3 h-3 text-muted-foreground/40 shrink-0" />}
+                                <span className={`text-[11px] ${ok ? 'text-foreground/80' : 'text-muted-foreground/60'}`}>{label}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Powtórz hasło</Label>
