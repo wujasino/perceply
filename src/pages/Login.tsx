@@ -255,7 +255,7 @@ const Login = () => {
         className="hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between p-10 border-r border-[hsl(var(--glass-border))] bg-card/30"
       >
         <Link to="/" className="flex items-center w-fit">
-          <img src="/bitbrew-logo-cream.svg" alt="BitBrew" height="28" className="h-7" />
+          <img src="/bitbrew-logo.svg" alt="BitBrew" height="28" className="h-7" />
         </Link>
 
         <div className="space-y-8">
@@ -303,7 +303,7 @@ const Login = () => {
           {/* Top bar: mobile logo + back button */}
           <div className="flex items-center justify-between mb-6 lg:mb-4">
             <Link to="/" className="lg:hidden flex items-center">
-              <img src="/bitbrew-logo-cream.svg" alt="BitBrew" className="h-6" />
+              <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-6" />
             </Link>
             <Link
               to="/"

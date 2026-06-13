@@ -116,7 +116,7 @@ export default function ResetPassword() {
         {/* Logo */}
         <div className="flex justify-center mb-8">
           <Link to="/">
-            <img src="/bitbrew-logo-cream.svg" alt="BitBrew" className="h-9" />
+            <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-9" />
           </Link>
         </div>
 
