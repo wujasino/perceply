@@ -293,8 +293,8 @@ export default function Settings() {
         onClick={close}
       />
 
-      {/* Panel — static after mount, no re-animation on tab change */}
-      <div className="relative z-10 w-full max-w-3xl max-h-[85vh] flex overflow-hidden rounded-2xl border border-[hsl(var(--glass-border))] bg-background/95 shadow-2xl">
+      {/* Panel — fixed height so switching sections never resizes/recenters it */}
+      <div className="relative z-10 w-full max-w-3xl h-[85vh] max-h-[640px] flex overflow-hidden rounded-2xl border border-[hsl(var(--glass-border))] bg-background/95 shadow-2xl">
 
           {/* Sidebar */}
           <aside className="w-52 shrink-0 border-r border-[hsl(var(--glass-border))] bg-muted/30 flex flex-col p-3 gap-0.5">
