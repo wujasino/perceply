@@ -5,7 +5,7 @@ export async function signInWithGoogle(): Promise<void> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${siteUrl}/dashboard`,
+      redirectTo: `${siteUrl}/auth/callback`,
       queryParams: {
         access_type: 'offline',
         prompt: 'consent',
