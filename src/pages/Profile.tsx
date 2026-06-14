@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus, Download, Sparkles } from 'lucide-react';
+import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus, Download, Sparkles, AlertTriangle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/locale';
 import { Navbar } from '@/components/layout/Navbar';
@@ -145,6 +145,19 @@ const Profile = () => {
 
   const displayed = showAll ? filtered : filtered.slice(0, 6);
 
+  /* Alerts — brands whose latest score dropped >= threshold vs the prior run */
+  const ALERT_THRESHOLD = 5;
+  const alerts = useMemo(() => {
+    return analyses
+      .map(a => {
+        const prev = prevScores[a.brand_name.trim().toLowerCase()];
+        const drop = prev !== undefined ? prev - a.trust_score : 0;
+        return { brand: a.brand_name, id: a.id, drop, current: a.trust_score };
+      })
+      .filter(x => x.drop >= ALERT_THRESHOLD)
+      .sort((a, b) => b.drop - a.drop);
+  }, [analyses, prevScores]);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -214,6 +227,35 @@ const Profile = () => {
               initial={{ width: 0 }} animate={{ width: `${usagePercent}%` }} transition={{ duration: 0.8, delay: 0.3 }} />
           </div>
         </motion.div>
+
+        {/* ── ALERTS ───────────────────────────────────────────────── */}
+        {alerts.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-red-500/25 bg-red-500/5 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <h2 className="text-sm font-semibold text-foreground">{t('alerts_title')}</h2>
+              <span className="text-xs text-muted-foreground">({alerts.length})</span>
+            </div>
+            <div className="space-y-2">
+              {alerts.slice(0, 4).map(a => (
+                <button key={a.id}
+                  onClick={() => navigate(`/dashboard?id=${encodeURIComponent(a.id)}`)}
+                  className="w-full flex items-center justify-between gap-3 text-left rounded-xl px-3 py-2.5 hover:bg-red-500/10 transition-colors"
+                >
+                  <span className="text-sm text-foreground font-medium">{a.brand}</span>
+                  <span className="flex items-center gap-2 text-xs">
+                    <span className="text-red-400 font-medium flex items-center gap-0.5">
+                      <ChevronDown className="w-3.5 h-3.5" /> {a.drop} {t('alerts_points')}
+                    </span>
+                    <span className="text-muted-foreground">→ {a.current}</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/40" />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* ── ANALYSES LIST ─────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
