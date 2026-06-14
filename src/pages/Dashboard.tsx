@@ -245,6 +245,19 @@ const Dashboard = () => {
     setCompetitor(null);
     setCompetitorInput('');
   };
+
+  // Embeddable badge
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const badgeBrand = result?.brandName || brandFromUrl || 'Your Brand';
+  const badgeSrc = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.bitbrew.pl'}/.netlify/functions/badge?brand=${encodeURIComponent(badgeBrand)}`;
+  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="BitBrew AI Visibility" height="36" /></a>`;
+  const copyEmbed = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      setCopiedEmbed(true);
+      setTimeout(() => setCopiedEmbed(false), 2000);
+    } catch { /* ignore */ }
+  };
   const canSeeCharts = planTier >= 1;
   const canSeeSources = planTier >= 2;
 
@@ -505,6 +518,31 @@ const Dashboard = () => {
                     t={t}
                   />
                 )}
+              </div>
+
+              {/* Embeddable badge */}
+              <div className="col-span-12">
+                <div className="glass-card p-6">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Layers className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-medium text-foreground">{t('embed_title')}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4">{t('embed_desc')}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <img src={badgeSrc} alt="BitBrew AI Visibility badge" height={36} className="h-9 shrink-0" />
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <code className="flex-1 text-[11px] text-muted-foreground bg-background border border-input rounded-lg px-3 py-2 truncate font-data">
+                        {embedCode}
+                      </code>
+                      <button
+                        onClick={copyEmbed}
+                        className="h-9 px-4 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shrink-0"
+                      >
+                        {copiedEmbed ? t('embed_copied') : t('embed_copy')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
