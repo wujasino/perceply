@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus } from 'lucide-react';
+import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus, Download, Sparkles } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/locale';
 import { Navbar } from '@/components/layout/Navbar';
@@ -114,6 +114,29 @@ const Profile = () => {
     })();
   }, [navigate]);
 
+  const downloadFile = (content: string, filename: string, mime: string) => {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportData = (format: 'csv' | 'json') => {
+    if (!analyses.length) return;
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (format === 'json') {
+      downloadFile(JSON.stringify(analyses, null, 2), `bitbrew-analizy-${stamp}.json`, 'application/json');
+      return;
+    }
+    const header = ['brand_name', 'trust_score', 'created_at'];
+    const escape = (v: string) => `"${String(v).replace(/"/g, '""')}"`;
+    const rows = analyses.map(a => [escape(a.brand_name), a.trust_score, escape(a.created_at)].join(','));
+    downloadFile([header.join(','), ...rows].join('\n'), `bitbrew-analizy-${stamp}.csv`, 'text/csv;charset=utf-8');
+  };
+
   const filtered = useMemo(() => {
     let list = query ? analyses.filter(a => a.brand_name.toLowerCase().includes(query.toLowerCase())) : analyses;
     list = [...list].sort((a, b) => sortDir === 'desc' ? b.trust_score - a.trust_score : a.trust_score - b.trust_score);
@@ -217,13 +240,48 @@ const Profile = () => {
               >
                 Score {sortDir === 'desc' ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
               </button>
+              {analyses.length > 0 && (
+                <div className="flex items-center rounded-lg border border-input overflow-hidden">
+                  <button
+                    onClick={() => exportData('csv')}
+                    title={t('profile_export_csv')}
+                    className="flex items-center gap-1 px-3 h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    <Download className="w-3 h-3" /> CSV
+                  </button>
+                  <span className="w-px h-4 bg-border" />
+                  <button
+                    onClick={() => exportData('json')}
+                    title={t('profile_export_json')}
+                    className="px-3 h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    JSON
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
           {filtered.length === 0 ? (
-            <div className="glass-card p-10 text-center text-sm text-muted-foreground">
-              {query ? t('profile_no_results') : t('profile_no_analyses')}
-            </div>
+            query ? (
+              <div className="glass-card p-10 text-center text-sm text-muted-foreground">
+                {t('profile_no_results')}
+              </div>
+            ) : (
+              <div className="glass-card p-10 text-center flex flex-col items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="w-7 h-7 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">{t('profile_empty_title')}</h3>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{t('profile_empty_desc')}</p>
+                </div>
+                <Button onClick={() => navigate('/dashboard')} className="gap-1.5">
+                  <Plus className="w-4 h-4" /> {t('profile_empty_cta')}
+                </Button>
+                <p className="text-xs text-muted-foreground/60">{t('profile_empty_hint')}</p>
+              </div>
+            )
           ) : (
             <div className="space-y-2">
               {displayed.map((brew, i) => {
