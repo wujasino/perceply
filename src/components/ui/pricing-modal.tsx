@@ -206,19 +206,8 @@ export function PricingModal({ open, onClose, currentPlan = 'free' }: Props) {
 
             {tab === 'plans' && (
               <motion.div key="plans" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-                {/* Billing toggle + currency */}
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1">
-                    {(['monthly', 'yearly'] as const).map(c => (
-                      <button key={c} onClick={() => setBillingCycle(c)}
-                        className={cn('px-4 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                          billingCycle === c ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                        )}>
-                        {c === 'monthly' ? t('billing_monthly') : t('billing_yearly')}
-                        {c === 'yearly' && <span className="ml-1.5 text-[10px] font-semibold text-emerald-400 uppercase">-20%</span>}
-                      </button>
-                    ))}
-                  </div>
+                {/* Currency switcher */}
+                <div className="flex justify-center mb-2">
                   <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-1">
                     {(['pln', 'usd'] as const).map(c => (
                       <button key={c} onClick={() => setCurrency(c)}
@@ -232,10 +221,11 @@ export function PricingModal({ open, onClose, currentPlan = 'free' }: Props) {
                 </div>
 
                 <PricingCards
-                  tiers={plans}
+                  plans={plans}
                   billingCycle={billingCycle}
-                  onSelectPlan={handlePlanSelect}
-                  loadingPlanId={loading}
+                  onCycleChange={setBillingCycle}
+                  onPlanSelect={(planId) => handlePlanSelect(planId)}
+                  loadingPlan={loading}
                 />
               </motion.div>
             )}
