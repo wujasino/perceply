@@ -24,7 +24,8 @@ export async function signInWithGoogle(): Promise<void> {
 
   sessionStorage.setItem('google_pkce_verifier', codeVerifier);
 
-  const redirectUri = `${window.location.origin}/auth/google/callback`;
+  const origin = (import.meta.env.VITE_SITE_URL as string | undefined) ?? window.location.origin;
+  const redirectUri = `${origin}/auth/google/callback`;
 
   const params = new URLSearchParams({
     client_id: clientId,
