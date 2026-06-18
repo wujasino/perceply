@@ -95,7 +95,7 @@ const SuccessScreen = ({ email }: { email: string }) => {
       // Confirms the account AND signs the user in (session is set)
       const { error: vErr } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
       if (vErr) throw vErr;
-      navigate('/dashboard', { replace: true });
+      navigate('/onboarding', { replace: true });
     } catch (err: any) {
       setError(err.message?.includes('expired') || err.message?.includes('invalid')
         ? 'Nieprawidłowy lub wygasły kod. Wyślij nowy.'
