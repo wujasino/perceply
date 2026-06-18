@@ -384,6 +384,80 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Dla kogo ──────────────────────────────────────────────── */}
+      <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Dla kogo
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              Kto korzysta z BitBrew?
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Niezależnie od wielkości firmy — jeśli zależy Ci na tym jak AI postrzega Twoją markę, BitBrew jest dla Ciebie.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                emoji: '🚀',
+                title: 'Startupy i founderzy',
+                desc: 'Budujesz markę od zera i chcesz wiedzieć czy AI w ogóle o Tobie mówi i co mówi. Zanim klienci zapytają ChatGPT — dowiedz się pierwszy.',
+                tags: ['Brand awareness', 'Early traction', 'Competitor gap'],
+                color: 'from-violet-500/10 to-transparent',
+                border: 'border-violet-500/20',
+              },
+              {
+                emoji: '📊',
+                title: 'Brand Managerowie',
+                desc: 'Śledzisz wizerunek marki w mediach tradycyjnych? Czas dodać kanał AI. Raportuj zarządowi jak marka wypada w modelach językowych.',
+                tags: ['Sentiment tracking', 'Weekly digest', 'CSV export'],
+                color: 'from-primary/10 to-transparent',
+                border: 'border-primary/20',
+                featured: true,
+              },
+              {
+                emoji: '🏢',
+                title: 'Agencje marketingowe',
+                desc: 'Oferuj klientom nową usługę: audyt widoczności w AI. Generuj raporty white-label i porównuj marki klientów z konkurencją.',
+                tags: ['Multi-brand', 'API access', 'Competitor compare'],
+                color: 'from-emerald-500/10 to-transparent',
+                border: 'border-emerald-500/20',
+              },
+            ].map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className={`relative glass-card p-7 flex flex-col gap-4 bg-gradient-to-b ${card.color} border ${card.border} ${card.featured ? 'ring-1 ring-primary/30' : ''}`}
+              >
+                {card.featured && (
+                  <span className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                    Najpopularniejsze
+                  </span>
+                )}
+                <div className="text-3xl">{card.emoji}</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{card.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-auto">
+                  {card.tags.map(tag => (
+                    <span key={tag} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-muted/60 text-muted-foreground border border-[hsl(var(--glass-border))]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Integrations ──────────────────────────────────────────── */}
       <section className="py-16 px-4 border-t border-[hsl(var(--glass-border))]">
         <div className="max-w-4xl mx-auto text-center">
@@ -418,6 +492,85 @@ const Landing = () => {
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-[hsl(var(--glass-border))] text-sm text-muted-foreground/50">
               + more via API
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Porównanie z konkurencją ──────────────────────────────── */}
+      <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Porównanie
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              BitBrew vs inne narzędzia
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Tradycyjne narzędzia monitorują media społecznościowe i wyszukiwarki. BitBrew monitoruje co AI mówi o Twojej marce.
+            </p>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+            <div className="overflow-x-auto rounded-2xl border border-[hsl(var(--glass-border))]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[hsl(var(--glass-border))]">
+                    <th className="text-left px-6 py-4 text-muted-foreground font-medium text-xs uppercase tracking-wider w-[35%]">Funkcja</th>
+                    <th className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs text-muted-foreground/50">SEMrush / Brandwatch</span>
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-center bg-primary/5 border-x border-primary/20">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-primary">BitBrew</span>
+                        <span className="text-[10px] text-primary/60 font-normal">AI-native</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: 'Monitoring wzmianek w social media',      others: true,  bb: false },
+                    { feature: 'SEO / ranking w wyszukiwarkach',          others: true,  bb: false },
+                    { feature: 'Widoczność w ChatGPT / GPT-4o',          others: false, bb: true  },
+                    { feature: 'Widoczność w Claude (Anthropic)',         others: false, bb: true  },
+                    { feature: 'Widoczność w Gemini (Google)',            others: false, bb: true  },
+                    { feature: 'AI Visibility Score (0–100)',             others: false, bb: true  },
+                    { feature: 'Analiza sentymentu AI',                   others: false, bb: true  },
+                    { feature: 'Porównanie z konkurencją w AI',           others: false, bb: true  },
+                    { feature: 'Rekomendacje GEO (Generative Engine Opt.)', others: false, bb: true },
+                    { feature: 'Cena startowa',                           others: '$99+/mies', bb: 'Free' },
+                  ].map((row, i) => (
+                    <tr key={i} className={`border-b border-[hsl(var(--glass-border))] last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
+                      <td className="px-6 py-3.5 text-sm text-foreground">{row.feature}</td>
+                      <td className="px-6 py-3.5 text-center">
+                        {typeof row.others === 'boolean' ? (
+                          row.others
+                            ? <span className="text-emerald-400 text-base">✓</span>
+                            : <span className="text-muted-foreground/30 text-base">—</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">{row.others}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3.5 text-center bg-primary/5 border-x border-primary/20">
+                        {typeof row.bb === 'boolean' ? (
+                          row.bb
+                            ? <span className="text-primary text-base font-bold">✓</span>
+                            : <span className="text-muted-foreground/30 text-base">—</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-primary">{row.bb}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-center text-xs text-muted-foreground/40 mt-4">
+              SEMrush i Brandwatch są świetnymi narzędziami do tradycyjnego monitoringu — BitBrew uzupełnia je o kanał AI.
+            </p>
           </motion.div>
         </div>
       </section>
@@ -538,6 +691,25 @@ const Landing = () => {
             </button>
           </div>
           <p className="text-xs text-muted-foreground/50 mt-4">{t('noCard')}</p>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-8 pt-8 border-t border-[hsl(var(--glass-border))]">
+            {[
+              { icon: '🔒', label: 'SSL / TLS', sub: 'Szyfrowane połączenie' },
+              { icon: '🇪🇺', label: 'GDPR Ready', sub: 'Dane zgodne z EU' },
+              { icon: '🏦', label: 'Stripe', sub: 'Bezpieczne płatności' },
+              { icon: '⚡', label: 'Netlify CDN', sub: 'Globalny hosting' },
+              { icon: '🔐', label: '2FA', sub: 'Ochrona konta' },
+            ].map(badge => (
+              <div key={badge.label} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-[hsl(var(--glass-border))] bg-card/40">
+                <span className="text-lg">{badge.icon}</span>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-foreground">{badge.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{badge.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
