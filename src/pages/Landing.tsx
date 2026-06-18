@@ -20,9 +20,6 @@ const INTEGRATIONS = [
   { name: 'Notion', color: '#000' },
 ];
 
-/* ── Social proof company names ───────────────────────────────────── */
-const SOCIAL_PROOF_NAMES = ['Shopify Plus', 'Brainly', 'Booksy', 'inPost', 'Tidio', 'Packhelp'];
-
 /* ── Before / After data ──────────────────────────────────────────── */
 const BEFORE = { mentions: '1 / 10', sentiment: '34', recommend: '8%' };
 const AFTER  = { mentions: '7 / 10', sentiment: '81', recommend: '63%' };
@@ -99,24 +96,6 @@ const Landing = () => {
               {t('hero_no_card')}
             </motion.p>
 
-            {/* ── Social proof strip ──────────────────────────────── */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-              className="mt-10 flex flex-col items-center gap-3"
-            >
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/50">
-                {t('social_proof_label')}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                {SOCIAL_PROOF_NAMES.map((name) => (
-                  <span key={name} className="text-sm font-medium text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors select-none">
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
 
             {/* ── How it works ────────────────────────────────────── */}
             <section className="mt-16 max-w-4xl mx-auto">
