@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/lib/locale';
 import { Eye, EyeOff, ArrowRight, Zap, BarChart3, Shield, Loader2, ArrowLeft, Mail, KeyRound } from 'lucide-react';
 import { getAuthUser, loginUser } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { FloatingPathsBackground } from '@/components/ui/floating-paths';
 
 
@@ -99,7 +100,10 @@ const Login = () => {
   const [error, setError]           = useState('');
   const [loading, setLoading]       = useState(false);
 
-  const [mode, setMode]             = useState<'login' | 'forgot' | 'otp' | 'reset' | 'forgot_sent'>('login');
+  const [mode, setMode]             = useState<'login' | 'forgot' | 'otp' | 'reset' | 'forgot_sent' | 'totp'>('login');
+  const [totpFactorId, setTotpFactorId] = useState('');
+  const [totpCode, setTotpCode]     = useState('');
+  const [totpLoading, setTotpLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [otpValue, setOtpValue]     = useState('');
@@ -231,6 +235,21 @@ const Login = () => {
         localStorage.removeItem('rememberMe');
         localStorage.removeItem('rememberEmail');
       }
+
+      // Check if user has TOTP enrolled
+      const { data: mfaData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (mfaData?.nextLevel === 'aal2' && mfaData.currentLevel !== 'aal2') {
+        const { data: factors } = await supabase.auth.mfa.listFactors();
+        const totpFactor = factors?.totp?.find(f => f.status === 'verified');
+        if (totpFactor) {
+          setTotpFactorId(totpFactor.id);
+          setTotpCode('');
+          setMode('totp');
+          setLoading(false);
+          return;
+        }
+      }
+
       navigate(from, { replace: true });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
@@ -244,6 +263,24 @@ const Login = () => {
     }
   };
 
+  const handleTotpVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (totpCode.length !== 6) return;
+    setTotpLoading(true);
+    setError('');
+    try {
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId: totpFactorId });
+      if (challengeErr) throw challengeErr;
+      const { error: verifyErr } = await supabase.auth.mfa.verify({ factorId: totpFactorId, challengeId: challengeData.id, code: totpCode });
+      if (verifyErr) throw verifyErr;
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setError('Nieprawidłowy kod. Sprawdź aplikację i spróbuj ponownie.');
+      setTotpCode('');
+    } finally {
+      setTotpLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -557,6 +594,49 @@ const Login = () => {
                 </div>
                 <Button type="button" variant="outline" className="w-full h-10 gap-2" onClick={() => switchMode('login', -1)}>
                   <ArrowLeft className="w-3.5 h-3.5" /> Powrót do logowania
+                </Button>
+              </motion.div>
+            )}
+
+            {/* ── TOTP 2FA challenge ── */}
+            {mode === 'totp' && (
+              <motion.div key="totp" custom={1} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="space-y-5">
+                <div className="text-center space-y-1">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-6 h-6 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-display text-foreground">Weryfikacja 2FA</h2>
+                  <p className="text-sm text-muted-foreground">Wpisz kod z aplikacji authenticator</p>
+                </div>
+
+                {error && (
+                  <motion.p initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                    className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5 text-center"
+                  >{error}</motion.p>
+                )}
+
+                <form onSubmit={handleTotpVerify} className="space-y-4">
+                  <Input
+                    value={totpCode}
+                    onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="000000"
+                    inputMode="numeric"
+                    maxLength={6}
+                    className="h-14 text-center text-3xl tracking-[0.4em] font-bold"
+                    autoFocus
+                  />
+                  <Button type="submit" className="w-full h-10" disabled={totpLoading || totpCode.length < 6}>
+                    {totpLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Weryfikacja...
+                      </span>
+                    ) : 'Zweryfikuj'}
+                  </Button>
+                </form>
+
+                <Button type="button" variant="ghost" className="w-full text-xs text-muted-foreground" onClick={() => { setMode('login'); setError(''); }}>
+                  Wróć do logowania
                 </Button>
               </motion.div>
             )}

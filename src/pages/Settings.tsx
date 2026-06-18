@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { TotpSetup } from '@/components/ui/totp-setup';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import {
@@ -629,6 +630,20 @@ export default function Settings() {
               {/* ── SECURITY ── */}
               {activeTab === 'security' && (
                 <div className="space-y-5">
+
+                  {/* ── Two-Factor Authentication ── */}
+                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Shield className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Uwierzytelnianie dwuskładnikowe (2FA)</p>
+                        <p className="text-xs text-muted-foreground">Google Authenticator, Authy i inne</p>
+                      </div>
+                    </div>
+                    <TotpSetup />
+                  </div>
 
                   {/* ── Change password via OTP ── */}
                   <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
