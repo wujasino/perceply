@@ -37,9 +37,4 @@ export async function logout() {
   await supabase.auth.signOut();
 }
 
-export async function loginWithGoogle() {
-  const { signInWithGoogle } = await import('./googleAuth');
-  await signInWithGoogle();
-}
-
-export default { registerUser, loginUser, getAuthUser, isAuthenticated, logout, loginWithGoogle };
+export default { registerUser, loginUser, getAuthUser, isAuthenticated, logout };

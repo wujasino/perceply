@@ -22,7 +22,7 @@ export default function BrandKnowledgeForm({ brandName }: BrandKnowledgeFormProp
   const [fragments, setFragments] = useState<Fragment[]>([]);
   const [loadingFragments, setLoadingFragments] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [expandedFragment, setExpandedFragment] = useState<string | null>(null);
 
   const loadFragments = useCallback(async () => {
@@ -97,27 +97,34 @@ export default function BrandKnowledgeForm({ brandName }: BrandKnowledgeFormProp
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden"
+      className="rounded-2xl border border-primary/25 bg-primary/5 backdrop-blur-xl overflow-hidden"
     >
       {/* Header */}
       <button
         onClick={() => setExpanded(v => !v)}
-        className="w-full flex items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-primary/5 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <BookOpen className="w-4 h-4 text-primary" />
+          <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+            <BookOpen className="w-4.5 h-4.5 text-primary" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-medium text-foreground">Baza wiedzy o marce</p>
-            <p className="text-xs text-muted-foreground">
-              {loadingFragments ? 'Ładowanie…' : `${fragments.length} fragment${fragments.length === 1 ? '' : fragments.length < 5 ? 'y' : 'ów'} · ${brandName}`}
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground">Baza wiedzy o marce</p>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/25">
+                Poprawia wyniki
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {loadingFragments ? 'Ładowanie…' : fragments.length > 0
+                ? `${fragments.length} fragment${fragments.length === 1 ? '' : fragments.length < 5 ? 'y' : 'ów'} · ${brandName}`
+                : 'Dodaj kontekst aby AI lepiej rozumiało Twoją markę'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {fragments.length > 0 && (
-            <span className="w-5 h-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center">
+            <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
               {fragments.length}
             </span>
           )}

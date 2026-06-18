@@ -1,0 +1,265 @@
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, ShieldOff, Loader2, CheckCircle2, Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { supabase } from '@/lib/supabase';
+
+type Step = 'idle' | 'qr' | 'verify' | 'done' | 'disabling';
+
+interface Props {
+  onStatusChange?: (enabled: boolean) => void;
+}
+
+export function TotpSetup({ onStatusChange }: Props) {
+  const [enrolled, setEnrolled] = useState<boolean | null>(null);
+  const [step, setStep] = useState<Step>('idle');
+  const [qrUrl, setQrUrl] = useState('');
+  const [secret, setSecret] = useState('');
+  const [factorId, setFactorId] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    checkEnrollment();
+  }, []);
+
+  const checkEnrollment = async () => {
+    const { data } = await supabase.auth.mfa.listFactors();
+    const hasTOTP = data?.totp?.some(f => f.status === 'verified') ?? false;
+    setEnrolled(hasTOTP);
+    if (hasTOTP) {
+      const factor = data?.totp?.find(f => f.status === 'verified');
+      if (factor) setFactorId(factor.id);
+    }
+  };
+
+  const handleEnroll = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const { data, error: err } = await supabase.auth.mfa.enroll({ factorType: 'totp', issuer: 'BitBrew', friendlyName: 'BitBrew Authenticator' });
+      if (err) throw err;
+      setQrUrl(data.totp.qr_code);
+      setSecret(data.totp.secret);
+      setFactorId(data.id);
+      setStep('qr');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Błąd konfiguracji 2FA');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setLoading(true);
+    setError('');
+    try {
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId });
+      if (challengeErr) throw challengeErr;
+
+      const { error: verifyErr } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challengeData.id,
+        code,
+      });
+      if (verifyErr) throw verifyErr;
+
+      setEnrolled(true);
+      setStep('done');
+      onStatusChange?.(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieprawidłowy kod. Spróbuj ponownie.');
+      setCode('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDisable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setLoading(true);
+    setError('');
+    try {
+      // Must challenge + verify before unenrolling
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId });
+      if (challengeErr) throw challengeErr;
+
+      const { error: verifyErr } = await supabase.auth.mfa.verify({
+        factorId,
+        challengeId: challengeData.id,
+        code,
+      });
+      if (verifyErr) throw verifyErr;
+
+      const { error: unenrollErr } = await supabase.auth.mfa.unenroll({ factorId });
+      if (unenrollErr) throw unenrollErr;
+
+      setEnrolled(false);
+      setStep('idle');
+      setCode('');
+      setFactorId('');
+      onStatusChange?.(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nieprawidłowy kod.');
+      setCode('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(secret);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (enrolled === null) {
+    return <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <AnimatePresence mode="wait">
+
+        {/* ── Idle: enrolled ── */}
+        {enrolled && step !== 'disabling' && (
+          <motion.div key="enrolled" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+              <span className="font-medium">Authenticator włączony</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Twoje konto jest chronione przez dwuskładnikowe uwierzytelnianie. Przy każdym logowaniu będziesz proszony o kod z aplikacji.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-red-400 border-red-500/30 hover:bg-red-500/10"
+              onClick={() => { setStep('disabling'); setCode(''); setError(''); }}
+            >
+              <ShieldOff className="w-3.5 h-3.5 mr-1.5" />
+              Wyłącz 2FA
+            </Button>
+          </motion.div>
+        )}
+
+        {/* ── Disabling: confirm with code ── */}
+        {step === 'disabling' && (
+          <motion.div key="disabling" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <p className="text-sm text-foreground font-medium">Potwierdź wyłączenie 2FA</p>
+            <p className="text-xs text-muted-foreground">Wpisz kod z aplikacji authenticator aby wyłączyć ochronę.</p>
+            <form onSubmit={handleDisable} className="space-y-3">
+              <Input
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                inputMode="numeric"
+                maxLength={6}
+                className="h-10 text-center text-xl tracking-widest font-bold"
+                autoFocus
+              />
+              {error && <p className="text-xs text-red-400">{error}</p>}
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="ghost" onClick={() => { setStep('idle'); setCode(''); setError(''); }}>
+                  Anuluj
+                </Button>
+                <Button type="submit" size="sm" variant="destructive" className="flex-1" disabled={loading || code.length < 6}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldOff className="w-3.5 h-3.5 mr-1.5" />}
+                  Wyłącz 2FA
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ── Not enrolled ── */}
+        {!enrolled && step === 'idle' && (
+          <motion.div key="not-enrolled" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Dodaj dodatkową warstwę ochrony. Po włączeniu, przy każdym logowaniu będziesz proszony o jednorazowy kod z aplikacji (Google Authenticator, Authy itp.).
+            </p>
+            {error && <p className="text-xs text-red-400">{error}</p>}
+            <Button size="sm" variant="outline" onClick={handleEnroll} disabled={loading}>
+              {loading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+              Włącz Authenticator
+            </Button>
+          </motion.div>
+        )}
+
+        {/* ── QR code step ── */}
+        {step === 'qr' && (
+          <motion.div key="qr" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <p className="text-sm font-medium text-foreground">Zeskanuj kod QR</p>
+            <p className="text-xs text-muted-foreground">
+              Otwórz aplikację Google Authenticator, Authy lub podobną i zeskanuj kod QR poniżej.
+            </p>
+            <div className="flex justify-center">
+              <div className="p-3 rounded-xl bg-white border border-[hsl(var(--glass-border))]">
+                <img src={qrUrl} alt="TOTP QR Code" className="w-40 h-40" />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">Nie możesz zeskanować? Wpisz klucz ręcznie:</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2 rounded-lg bg-muted text-xs font-mono text-foreground break-all">
+                  {secret}
+                </code>
+                <Button type="button" size="sm" variant="outline" onClick={copySecret} className="shrink-0">
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+            </div>
+            <Button size="sm" className="w-full" onClick={() => { setStep('verify'); setCode(''); setError(''); }}>
+              Dalej — wpisz kod weryfikacyjny
+            </Button>
+          </motion.div>
+        )}
+
+        {/* ── Verify code ── */}
+        {step === 'verify' && (
+          <motion.div key="verify" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Weryfikacja</p>
+            <p className="text-xs text-muted-foreground">Wpisz 6-cyfrowy kod z aplikacji authenticator aby potwierdzić konfigurację.</p>
+            <form onSubmit={handleVerify} className="space-y-3">
+              <Input
+                value={code}
+                onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                inputMode="numeric"
+                maxLength={6}
+                className="h-10 text-center text-xl tracking-widest font-bold"
+                autoFocus
+              />
+              {error && <p className="text-xs text-red-400">{error}</p>}
+              <div className="flex gap-2">
+                <Button type="button" size="sm" variant="ghost" onClick={() => setStep('qr')}>Wróć</Button>
+                <Button type="submit" size="sm" className="flex-1" disabled={loading || code.length < 6}>
+                  {loading ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />}
+                  Aktywuj 2FA
+                </Button>
+              </div>
+            </form>
+          </motion.div>
+        )}
+
+        {/* ── Done ── */}
+        {step === 'done' && (
+          <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3 text-emerald-400">
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium">2FA włączone!</p>
+              <p className="text-xs text-muted-foreground">Twoje konto jest teraz chronione przez authenticator.</p>
+            </div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+    </div>
+  );
+}

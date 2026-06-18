@@ -1,6 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight } from 'lucide-react';
+import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight, Check, X } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -9,6 +10,7 @@ import { PromptInputBox } from '@/components/ui/ai-prompt-box';
 import { CookiePanel } from '@/components/ui/cookie-banner-1';
 import { NewsletterSignup } from '@/components/ui/newsletter-signup';
 import { GradientMeshBg } from '@/components/ui/gradient-mesh-bg';
+import { ContactForm } from '@/components/ui/contact-form';
 
 /* ── Integration logos (text-based, gray) ─────────────────────────── */
 const INTEGRATIONS = [
@@ -20,16 +22,49 @@ const INTEGRATIONS = [
   { name: 'Notion', color: '#000' },
 ];
 
-/* ── Social proof company names ───────────────────────────────────── */
-const SOCIAL_PROOF_NAMES = ['Shopify Plus', 'Brainly', 'Booksy', 'inPost', 'Tidio', 'Packhelp'];
-
 /* ── Before / After data ──────────────────────────────────────────── */
 const BEFORE = { mentions: '1 / 10', sentiment: '34', recommend: '8%' };
 const AFTER  = { mentions: '7 / 10', sentiment: '81', recommend: '63%' };
 
+const PLANS = (t: (k: string) => string, cycle: 'monthly' | 'yearly', locale: string) => {
+  const pln = locale === 'pl';
+  const prices = {
+    solo:   cycle === 'monthly' ? (pln ? '99 zł' : '$29')  : (pln ? '950 zł'   : '$279'),
+    growth: cycle === 'monthly' ? (pln ? '249 zł' : '$79') : (pln ? '2 350 zł' : '$749'),
+  };
+  const per = cycle === 'monthly' ? (pln ? t('tier_period_month') : '/mo') : (pln ? t('tier_period_year') : '/yr');
+  return [
+    {
+      id: 'free', name: 'Free', price: 'Free', per: '', popular: false,
+      cta: t('start_for_free'), href: '/register',
+      features: [t('tier_free_feat_1'), t('tier_free_feat_2'), t('tier_free_feat_3'), t('tier_free_feat_4')],
+      missing: [t('tier_solo_feat_3'), t('tier_growth_feat_4')],
+    },
+    {
+      id: 'solo', name: 'Solo', price: prices.solo, per, popular: false,
+      cta: t('get_started'), href: '/pricing',
+      features: [t('tier_solo_feat_1'), t('tier_solo_feat_2'), t('tier_solo_feat_3'), t('tier_solo_feat_4'), t('tier_solo_feat_5'), t('tier_solo_feat_6')],
+      missing: [t('tier_growth_feat_4')],
+    },
+    {
+      id: 'growth', name: 'Growth', price: prices.growth, per, popular: true,
+      cta: t('get_started'), href: '/pricing',
+      features: [t('tier_growth_feat_1'), t('tier_growth_feat_2'), t('tier_growth_feat_3'), t('tier_growth_feat_4'), t('tier_growth_feat_5'), t('tier_growth_feat_6'), t('tier_growth_feat_7')],
+      missing: [],
+    },
+    {
+      id: 'enterprise', name: 'Enterprise', price: t('tier_ent_price'), per: '', popular: false,
+      cta: t('contact_sales'), href: 'mailto:kontakt@bitbrew.pl?subject=Enterprise Plan',
+      features: [t('tier_ent_feat_1'), t('tier_ent_feat_2'), t('tier_ent_feat_3'), t('tier_ent_feat_4'), t('tier_ent_feat_5')],
+      missing: [],
+    },
+  ];
+};
+
 const Landing = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const [pricingCycle, setPricingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,24 +134,6 @@ const Landing = () => {
               {t('hero_no_card')}
             </motion.p>
 
-            {/* ── Social proof strip ──────────────────────────────── */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-              className="mt-10 flex flex-col items-center gap-3"
-            >
-              <p className="text-[11px] uppercase tracking-widest text-muted-foreground/50">
-                {t('social_proof_label')}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                {SOCIAL_PROOF_NAMES.map((name) => (
-                  <span key={name} className="text-sm font-medium text-muted-foreground/40 hover:text-muted-foreground/60 transition-colors select-none">
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </motion.div>
 
             {/* ── How it works ────────────────────────────────────── */}
             <section className="mt-16 max-w-4xl mx-auto">
@@ -367,6 +384,80 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Dla kogo ──────────────────────────────────────────────── */}
+      <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Dla kogo
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              Kto korzysta z BitBrew?
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Niezależnie od wielkości firmy — jeśli zależy Ci na tym jak AI postrzega Twoją markę, BitBrew jest dla Ciebie.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              {
+                emoji: '🚀',
+                title: 'Startupy i founderzy',
+                desc: 'Budujesz markę od zera i chcesz wiedzieć czy AI w ogóle o Tobie mówi i co mówi. Zanim klienci zapytają ChatGPT — dowiedz się pierwszy.',
+                tags: ['Brand awareness', 'Early traction', 'Competitor gap'],
+                color: 'from-violet-500/10 to-transparent',
+                border: 'border-violet-500/20',
+              },
+              {
+                emoji: '📊',
+                title: 'Brand Managerowie',
+                desc: 'Śledzisz wizerunek marki w mediach tradycyjnych? Czas dodać kanał AI. Raportuj zarządowi jak marka wypada w modelach językowych.',
+                tags: ['Sentiment tracking', 'Weekly digest', 'CSV export'],
+                color: 'from-primary/10 to-transparent',
+                border: 'border-primary/20',
+                featured: true,
+              },
+              {
+                emoji: '🏢',
+                title: 'Agencje marketingowe',
+                desc: 'Oferuj klientom nową usługę: audyt widoczności w AI. Generuj raporty white-label i porównuj marki klientów z konkurencją.',
+                tags: ['Multi-brand', 'API access', 'Competitor compare'],
+                color: 'from-emerald-500/10 to-transparent',
+                border: 'border-emerald-500/20',
+              },
+            ].map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className={`relative glass-card p-7 flex flex-col gap-4 bg-gradient-to-b ${card.color} border ${card.border} ${card.featured ? 'ring-1 ring-primary/30' : ''}`}
+              >
+                {card.featured && (
+                  <span className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider">
+                    Najpopularniejsze
+                  </span>
+                )}
+                <div className="text-3xl">{card.emoji}</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{card.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{card.desc}</p>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-auto">
+                  {card.tags.map(tag => (
+                    <span key={tag} className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-muted/60 text-muted-foreground border border-[hsl(var(--glass-border))]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Integrations ──────────────────────────────────────────── */}
       <section className="py-16 px-4 border-t border-[hsl(var(--glass-border))]">
         <div className="max-w-4xl mx-auto text-center">
@@ -405,6 +496,180 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Porównanie z konkurencją ──────────────────────────────── */}
+      <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Porównanie
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              BitBrew vs inne narzędzia
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Tradycyjne narzędzia monitorują media społecznościowe i wyszukiwarki. BitBrew monitoruje co AI mówi o Twojej marce.
+            </p>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+            <div className="overflow-x-auto rounded-2xl border border-[hsl(var(--glass-border))]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[hsl(var(--glass-border))]">
+                    <th className="text-left px-6 py-4 text-muted-foreground font-medium text-xs uppercase tracking-wider w-[35%]">Funkcja</th>
+                    <th className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs text-muted-foreground/50">SEMrush / Brandwatch</span>
+                      </div>
+                    </th>
+                    <th className="px-6 py-4 text-center bg-primary/5 border-x border-primary/20">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-primary">BitBrew</span>
+                        <span className="text-[10px] text-primary/60 font-normal">AI-native</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: 'Monitoring wzmianek w social media',      others: true,  bb: false },
+                    { feature: 'SEO / ranking w wyszukiwarkach',          others: true,  bb: false },
+                    { feature: 'Widoczność w ChatGPT / GPT-4o',          others: false, bb: true  },
+                    { feature: 'Widoczność w Claude (Anthropic)',         others: false, bb: true  },
+                    { feature: 'Widoczność w Gemini (Google)',            others: false, bb: true  },
+                    { feature: 'AI Visibility Score (0–100)',             others: false, bb: true  },
+                    { feature: 'Analiza sentymentu AI',                   others: false, bb: true  },
+                    { feature: 'Porównanie z konkurencją w AI',           others: false, bb: true  },
+                    { feature: 'Rekomendacje GEO (Generative Engine Opt.)', others: false, bb: true },
+                    { feature: 'Cena startowa',                           others: '$99+/mies', bb: 'Free' },
+                  ].map((row, i) => (
+                    <tr key={i} className={`border-b border-[hsl(var(--glass-border))] last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
+                      <td className="px-6 py-3.5 text-sm text-foreground">{row.feature}</td>
+                      <td className="px-6 py-3.5 text-center">
+                        {typeof row.others === 'boolean' ? (
+                          row.others
+                            ? <span className="text-emerald-400 text-base">✓</span>
+                            : <span className="text-muted-foreground/30 text-base">—</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">{row.others}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3.5 text-center bg-primary/5 border-x border-primary/20">
+                        {typeof row.bb === 'boolean' ? (
+                          row.bb
+                            ? <span className="text-primary text-base font-bold">✓</span>
+                            : <span className="text-muted-foreground/30 text-base">—</span>
+                        ) : (
+                          <span className="text-sm font-semibold text-primary">{row.bb}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-center text-xs text-muted-foreground/40 mt-4">
+              SEMrush i Brandwatch są świetnymi narzędziami do tradycyjnego monitoringu — BitBrew uzupełnia je o kanał AI.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Pricing ───────────────────────────────────────────────── */}
+      <section id="pricing" className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-10"
+          >
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              {t('nav_pricing')}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              {t('pricing_headline') || 'Prosty cennik'}
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              {t('pricing_subheadline') || 'Zacznij za darmo, skaluj gdy potrzebujesz.'}
+            </p>
+
+            {/* Billing toggle */}
+            <div className="flex items-center justify-center mt-6">
+              <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-1">
+                {(['monthly', 'yearly'] as const).map(c => (
+                  <button key={c} onClick={() => setPricingCycle(c)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      pricingCycle === c ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                    }`}>
+                    {c === 'monthly' ? t('billing_cycle_monthly') : t('billing_cycle_yearly')}
+                    {c === 'yearly' && (
+                      <span className="ml-2 text-[10px] font-semibold text-emerald-400 uppercase">-20%</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+            {PLANS(t, pricingCycle, locale).map((plan, i) => (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative glass-card p-6 flex flex-col gap-4 ${
+                  plan.popular ? 'ring-2 ring-primary/50 bg-primary/5' : ''
+                }`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                    {t('most_popular')}
+                  </span>
+                )}
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60 mb-1">{plan.name}</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-display text-foreground">{plan.price}</span>
+                    {plan.per && <span className="text-sm text-muted-foreground">{plan.per}</span>}
+                  </div>
+                </div>
+
+                <ul className="flex flex-col gap-2 flex-1">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-foreground">
+                      <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                  {plan.missing.map(f => (
+                    <li key={f} className="flex items-start gap-2 text-sm text-muted-foreground/40 line-through">
+                      <X className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <a
+                  href={plan.href}
+                  onClick={plan.href.startsWith('/') ? (e) => { e.preventDefault(); navigate(plan.href); } : undefined}
+                  className={`w-full text-center py-2.5 rounded-xl text-sm font-medium transition-opacity ${
+                    plan.popular
+                      ? 'bg-primary text-primary-foreground hover:opacity-90'
+                      : 'border border-[hsl(var(--glass-border))] text-foreground hover:border-primary/40 hover:bg-card/60'
+                  }`}
+                >
+                  {plan.cta}
+                </a>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA box ───────────────────────────────────────────────── */}
       <section className="py-20 px-4 cta-box">
         <div className="max-w-2xl mx-auto text-center glass-card p-12">
@@ -426,6 +691,52 @@ const Landing = () => {
             </button>
           </div>
           <p className="text-xs text-muted-foreground/50 mt-4">{t('noCard')}</p>
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mt-8 pt-8 border-t border-[hsl(var(--glass-border))]">
+            {[
+              { icon: '🔒', label: 'SSL / TLS', sub: 'Szyfrowane połączenie' },
+              { icon: '🇪🇺', label: 'GDPR Ready', sub: 'Dane zgodne z EU' },
+              { icon: '🏦', label: 'Stripe', sub: 'Bezpieczne płatności' },
+              { icon: '⚡', label: 'Netlify CDN', sub: 'Globalny hosting' },
+              { icon: '🔐', label: '2FA', sub: 'Ochrona konta' },
+            ].map(badge => (
+              <div key={badge.label} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-[hsl(var(--glass-border))] bg-card/40">
+                <span className="text-lg">{badge.icon}</span>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-foreground">{badge.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{badge.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Contact ───────────────────────────────────────────────── */}
+      <section id="contact" className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              {t('footer_contact')}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground">
+              {t('contact_heading') || 'Napisz do nas'}
+            </h2>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+          >
+            <ContactForm />
+          </motion.div>
         </div>
       </section>
 
