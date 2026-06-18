@@ -370,7 +370,7 @@ const Dashboard = () => {
           </div>
 
           {/* Brand knowledge */}
-          {status === 'completed' && (
+          {inputValue.trim().length > 1 && (
             <BrandKnowledgeForm brandName={inputValue} />
           )}
 
