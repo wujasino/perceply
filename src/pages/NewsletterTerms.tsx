@@ -1,10 +1,20 @@
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
-const NewsletterTerms = () => (
+const NewsletterTerms = () => {
+  const navigate = useNavigate();
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
     <div className="pt-24 pb-16 px-4 max-w-4xl mx-auto">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Powrót
+      </button>
       <div
         dangerouslySetInnerHTML={{
           __html: `
@@ -239,6 +249,7 @@ const NewsletterTerms = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default NewsletterTerms;

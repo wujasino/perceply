@@ -1,11 +1,22 @@
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 
-const Terms = () => (
+const Terms = () => {
+  const navigate = useNavigate();
+  return (
   <div className="min-h-screen bg-background">
     <Navbar />
-    <div className="pt-24 pb-16 px-4">
+    <div className="pt-24 pb-16 px-4 max-w-5xl mx-auto">
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Powrót
+      </button>
       <div
+        style={{ background: '#fff', borderRadius: 12, padding: '2em' }}
         dangerouslySetInnerHTML={{
           __html: `
 <table style="width:85%;border-collapse:collapse;margin-left:auto;margin-right:auto;font-family:sans-serif;font-size:12pt;">
@@ -406,6 +417,7 @@ const Terms = () => (
     </div>
     <Footer />
   </div>
-);
+  );
+};
 
 export default Terms;
