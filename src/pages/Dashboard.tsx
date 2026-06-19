@@ -206,6 +206,46 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
             <InsightRow label={t('dashboard_insight_3')} value={`${positiveRatio}%`} accent={positiveRatio >= 50} />
           </div>
         </div>
+
+        {/* "o k***wa moment" — competitor urgency banner for low-scoring brands */}
+        {score < 60 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.4 }}
+            className="mt-6 rounded-xl border border-red-500/30 bg-red-500/5 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center mt-0.5">
+                <Swords className="w-4 h-4 text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-red-300 mb-1">
+                  {t('dashboard_low_score_alert_title') !== 'dashboard_low_score_alert_title'
+                    ? t('dashboard_low_score_alert_title')
+                    : 'AI poleca Twoich konkurentów — nie Ciebie'}
+                </p>
+                <p className="text-xs text-red-300/70 leading-relaxed">
+                  {t('dashboard_low_score_alert_body') !== 'dashboard_low_score_alert_body'
+                    ? t('dashboard_low_score_alert_body')
+                    : `Wynik ${score}% oznacza, że gdy ktoś pyta ChatGPT lub Gemini o rozwiązanie w Twojej kategorii, modele rekomendują konkurencję. Twoja marka jest niewidoczna w AI — to bezpośrednia utrata klientów.`}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {result.sources?.slice(0, 3).map((s, i) => (
+                    <span key={i} className={cn(
+                      'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium',
+                      s.sentiment === 'Negative' ? 'bg-red-500/15 text-red-300' :
+                      s.sentiment === 'Neutral' ? 'bg-amber-500/10 text-amber-300' :
+                      'bg-emerald-500/10 text-emerald-300'
+                    )}>
+                      {s.model}: {s.sentiment === 'Negative' ? '✗ nie poleca' : s.sentiment === 'Neutral' ? '~ neutralny' : '✓ poleca'}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
