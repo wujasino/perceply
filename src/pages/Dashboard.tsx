@@ -13,7 +13,6 @@ import { SourceTable } from '@/components/SourceTable';
 import BrandKnowledgeForm from '@/components/BrandKnowledgeForm';
 import { useBrewing } from '@/hooks/useBrewing';
 import { supabase } from '@/lib/supabase';
-import { FloatingPathsBackground } from '@/components/ui/floating-paths';
 import { cn } from '@/lib/utils';
 import { AnalysisResult } from '@/types/analysis';
 import { scoreBrand, type BrandScore } from '@/lib/brandScore';
@@ -123,7 +122,17 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
   }, [result.sources]);
 
   return (
-    <FloatingPathsBackground position={1} className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden mb-6">
+    <div className="relative rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden mb-6">
+      {/* Gradient mesh background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute top-4 right-8 w-56 h-56 rounded-full bg-violet-500/8 blur-3xl" />
+        <div className="absolute -bottom-12 left-1/2 w-64 h-48 rounded-full bg-primary/6 blur-2xl" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+        />
+      </div>
       <div className="relative p-6 sm:p-8 lg:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Big score */}
@@ -198,7 +207,7 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
           </div>
         </div>
       </div>
-    </FloatingPathsBackground>
+    </div>
   );
 };
 
