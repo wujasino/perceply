@@ -393,7 +393,6 @@ const Profile = () => {
         </motion.div>
 
       </div>
-      <Footer />
     </div>
   );
 };

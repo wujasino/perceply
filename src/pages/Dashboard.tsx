@@ -396,7 +396,6 @@ const Dashboard = () => {
   if (isIdle) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <Navbar />
         <div className="flex-1 flex items-center justify-center px-4">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -445,7 +444,6 @@ const Dashboard = () => {
             )}
           </motion.div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -709,7 +707,6 @@ const Dashboard = () => {
           </motion.div>
         )}
       </div>
-      {result && <Footer />}
     </div>
   );
 };

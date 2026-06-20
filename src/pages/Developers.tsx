@@ -515,7 +515,6 @@ const WebhooksSection = ({ userId, hooks, setHooks, deliveries, setDeliveries }:
           </ul>
         )}
       </div>
-      <Footer />
     </div>
   );
 };
