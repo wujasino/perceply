@@ -5,8 +5,9 @@ import { useTheme } from 'next-themes';
 import {
   X, User, Bell, Shield, Trash2, Moon, Globe, ChevronRight, Save,
   Upload, Camera, Loader2, KeyRound, Copy, Check, Mail, ArrowRight, ArrowLeft,
-  Eye, EyeOff, CheckCircle2, Circle, CreditCard, Download, Sun, Monitor, FileText,
+  Eye, EyeOff, CheckCircle2, Circle, CreditCard, Download, Sun, Monitor, FileText, Volume2,
 } from 'lucide-react';
+import { loadVoicePrefs, saveVoicePrefs, VoicePrefs, AVAILABLE_VOICES } from '@/hooks/useTTS';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,6 +32,7 @@ export default function Settings() {
   const { t, locale, setLocale } = useTranslation();
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>('account');
+  const [voicePrefs, setVoicePrefs] = useState<VoicePrefs>(loadVoicePrefs);
 
   // Billing / subscription
   const [subStatus, setSubStatus] = useState<'active' | 'paused' | 'cancelled'>('active');
@@ -621,6 +623,53 @@ export default function Settings() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="h-px bg-border" />
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground block mb-1">
+                      <Volume2 className="inline w-4 h-4 mr-1.5 text-primary" />
+                      Głos AI (czytanie raportów)
+                    </label>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Odtwarzaj raport na głos po zakończeniu analizy. Wymaga klucza ElevenLabs.
+                    </p>
+
+                    {/* Enable/disable toggle */}
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Włącz czytanie na głos</p>
+                        <p className="text-xs text-muted-foreground">Przycisk ▶ pojawi się w raporcie</p>
+                      </div>
+                      <button
+                        onClick={() => { const p = { ...voicePrefs, enabled: !voicePrefs.enabled }; setVoicePrefs(p); saveVoicePrefs(p); }}
+                        className={cn('relative w-10 h-6 rounded-full transition-colors', voicePrefs.enabled ? 'bg-primary' : 'bg-muted')}
+                      >
+                        <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform', voicePrefs.enabled ? 'left-5' : 'left-1')} />
+                      </button>
+                    </div>
+
+                    {/* Voice selector */}
+                    {voicePrefs.enabled && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {AVAILABLE_VOICES.map(v => (
+                          <button
+                            key={v.id}
+                            onClick={() => { const p = { ...voicePrefs, voiceId: v.id }; setVoicePrefs(p); saveVoicePrefs(p); }}
+                            className={cn(
+                              'flex flex-col items-start p-3 rounded-xl border text-left transition-colors',
+                              voicePrefs.voiceId === v.id
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
+                            )}
+                          >
+                            <span className="text-sm font-medium">{v.name}</span>
+                            <span className="text-[11px] opacity-70">{v.description}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
