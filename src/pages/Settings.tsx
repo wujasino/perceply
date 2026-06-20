@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { TotpSetup } from '@/components/ui/totp-setup';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from 'next-themes';
 import {
   X, User, Bell, Shield, Trash2, Moon, Globe, ChevronRight, Save,
   Upload, Camera, Loader2, KeyRound, Copy, Check, Mail, ArrowRight, ArrowLeft,
-  Eye, EyeOff, CheckCircle2, Circle, CreditCard, Download, Sun, Monitor,
+  Eye, EyeOff, CheckCircle2, Circle, CreditCard, Download, FileText, Volume2,
 } from 'lucide-react';
+import { loadVoicePrefs, saveVoicePrefs, VoicePrefs, AVAILABLE_VOICES } from '@/hooks/useTTS';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,8 +29,8 @@ const tabs: { id: Tab; labelKey: string; icon: React.FC<{ className?: string }> 
 export default function Settings() {
   const navigate = useNavigate();
   const { t, locale, setLocale } = useTranslation();
-  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<Tab>('account');
+  const [voicePrefs, setVoicePrefs] = useState<VoicePrefs>(loadVoicePrefs);
 
   // Billing / subscription
   const [subStatus, setSubStatus] = useState<'active' | 'paused' | 'cancelled'>('active');
@@ -45,6 +46,36 @@ export default function Settings() {
   const [notifBrewComplete, setNotifBrewComplete] = useState(true);
   const [notifNewsletter, setNotifNewsletter] = useState(false);
   const [notifMarketing, setNotifMarketing] = useState(false);
+
+  // Withdrawal form
+  const [showWithdrawal, setShowWithdrawal] = useState(false);
+  const [withdrawalService, setWithdrawalService] = useState('');
+  const [withdrawalDate, setWithdrawalDate] = useState('');
+  const [withdrawalStatus, setWithdrawalStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  const handleWithdrawal = async () => {
+    if (!withdrawalService.trim() || !withdrawalDate) return;
+    setWithdrawalStatus('sending');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userEmail = user?.email ?? email;
+      const body = `FORMULARZ ODSTĄPIENIA OD UMOWY\n\nAdresat: Patryk Rybacki, działalność nierejestrowana, Biskupia 7/2\nE-mail: kontakt@bitbrew.pl\n\nJa, niniejszym informuję o moim odstąpieniu od umowy o świadczenie następującej usługi:\n${withdrawalService}\n\nData zawarcia umowy: ${withdrawalDate}\n\nImię i nazwisko / e-mail konsumenta: ${userEmail}\n\nData złożenia oświadczenia: ${new Date().toLocaleDateString('pl-PL')}`;
+      const res = await fetch('/.netlify/functions/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userEmail,
+          email: userEmail,
+          subject: 'Odstąpienie od umowy',
+          message: body,
+        }),
+      });
+      if (!res.ok) throw new Error('send failed');
+      setWithdrawalStatus('sent');
+    } catch {
+      setWithdrawalStatus('error');
+    }
+  };
 
   const [userId, setUserId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -536,19 +567,26 @@ export default function Settings() {
                       <Globe className="inline w-4 h-4 mr-1.5 text-primary" />
                       {t('settings_language')}
                     </label>
-                    <div className="flex gap-2">
-                      {(['pl', 'en'] as const).map((lang) => (
+                    <div className="flex flex-wrap gap-2">
+                      {([
+                        { code: 'pl', label: '🇵🇱 Polski'    },
+                        { code: 'en', label: '🇬🇧 English'   },
+                        { code: 'de', label: '🇩🇪 Deutsch'   },
+                        { code: 'fr', label: '🇫🇷 Français'  },
+                        { code: 'es', label: '🇪🇸 Español'   },
+                        { code: 'it', label: '🇮🇹 Italiano'  },
+                      ] as const).map(({ code, label }) => (
                         <button
-                          key={lang}
-                          onClick={() => setLocale(lang)}
+                          key={code}
+                          onClick={() => setLocale(code)}
                           className={cn(
                             'px-4 py-2 rounded-lg text-sm border transition-colors',
-                            locale === lang
+                            locale === code
                               ? 'bg-primary text-primary-foreground border-primary'
                               : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
                           )}
                         >
-                          {lang === 'pl' ? '🇵🇱 Polski' : '🇬🇧 English'}
+                          {label}
                         </button>
                       ))}
                     </div>
@@ -558,31 +596,54 @@ export default function Settings() {
 
                   <div>
                     <label className="text-sm font-medium text-foreground block mb-1">
-                      <Moon className="inline w-4 h-4 mr-1.5 text-primary" />
-                      {t('settings_theme')}
+                      <Volume2 className="inline w-4 h-4 mr-1.5 text-primary" />
+                      Głos AI (czytanie raportów)
                     </label>
-                    <p className="text-xs text-muted-foreground mb-3">{t('settings_theme_hint')}</p>
-                    <div className="flex gap-2">
-                      {([
-                        { value: 'dark',   labelKey: 'settings_theme_dark',   Icon: Moon   },
-                        { value: 'light',  labelKey: 'settings_theme_light',  Icon: Sun    },
-                        { value: 'system', labelKey: 'settings_theme_system', Icon: Monitor },
-                      ] as const).map(({ value, labelKey, Icon }) => (
-                        <button
-                          key={value}
-                          onClick={() => setTheme(value)}
-                          className={cn(
-                            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm border transition-colors',
-                            theme === value
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
-                          )}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
-                          {t(labelKey)}
-                        </button>
-                      ))}
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Odtwarzaj raport na głos po zakończeniu analizy. Wymaga klucza ElevenLabs w panelu Netlify.
+                    </p>
+
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Włącz czytanie na głos</p>
+                        <p className="text-xs text-muted-foreground">Przycisk ▶ pojawi się w raporcie analizy</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const p = { ...voicePrefs, enabled: !voicePrefs.enabled };
+                          setVoicePrefs(p);
+                          saveVoicePrefs(p);
+                        }}
+                        className={cn('relative w-10 h-6 rounded-full transition-colors', voicePrefs.enabled ? 'bg-primary' : 'bg-muted')}
+                      >
+                        <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200', voicePrefs.enabled ? 'left-5' : 'left-1')} />
+                      </button>
                     </div>
+
+
+                    {voicePrefs.enabled && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {AVAILABLE_VOICES.map(v => (
+                          <button
+                            key={v.id}
+                            onClick={() => {
+                              const p = { ...voicePrefs, voiceId: v.id };
+                              setVoicePrefs(p);
+                              saveVoicePrefs(p);
+                            }}
+                            className={cn(
+                              'flex flex-col items-start p-3 rounded-xl border text-left transition-colors',
+                              voicePrefs.voiceId === v.id
+                                ? 'bg-primary/10 border-primary text-primary'
+                                : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
+                            )}
+                          >
+                            <span className="text-sm font-medium">{v.name}</span>
+                            <span className="text-[11px] opacity-70">{v.description}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -622,6 +683,20 @@ export default function Settings() {
               {/* ── SECURITY ── */}
               {activeTab === 'security' && (
                 <div className="space-y-5">
+
+                  {/* ── Two-Factor Authentication ── */}
+                  <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2.5 mb-1">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Shield className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Uwierzytelnianie dwuskładnikowe (2FA)</p>
+                        <p className="text-xs text-muted-foreground">Google Authenticator, Authy i inne</p>
+                      </div>
+                    </div>
+                    <TotpSetup />
+                  </div>
 
                   {/* ── Change password via OTP ── */}
                   <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 space-y-3">
@@ -903,6 +978,78 @@ export default function Settings() {
                       ))}
                     </div>
                   )}
+
+                  {/* ── Withdrawal from contract ── */}
+                  <div className="border-t border-[hsl(var(--glass-border))] pt-5 space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-2.5">
+                        <FileText className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Odstąpienie od umowy</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Jako konsument masz prawo odstąpić od umowy w terminie 14 dni od jej zawarcia, bez podawania przyczyny.
+                          </p>
+                        </div>
+                      </div>
+                      {withdrawalStatus !== 'sent' && (
+                        <Button size="sm" variant="outline" className="shrink-0" onClick={() => setShowWithdrawal(v => !v)}>
+                          {showWithdrawal ? 'Anuluj' : 'Złóż oświadczenie'}
+                        </Button>
+                      )}
+                    </div>
+
+                    {showWithdrawal && withdrawalStatus !== 'sent' && (
+                      <div className="space-y-3 p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20">
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          Wypełnij poniższy formularz. Oświadczenie zostanie przesłane na adres <strong>kontakt@bitbrew.pl</strong> oraz na Twój adres e-mail w celach potwierdzenia.
+                        </p>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">Nazwa usługi, od której odstępujesz *</label>
+                          <Input
+                            value={withdrawalService}
+                            onChange={e => setWithdrawalService(e.target.value)}
+                            placeholder="np. Subskrypcja Solo / Growth / Enterprise"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-muted-foreground">Data zawarcia umowy *</label>
+                          <Input
+                            type="date"
+                            value={withdrawalDate}
+                            onChange={e => setWithdrawalDate(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
+                          Składając oświadczenie potwierdzasz, że działasz jako konsument i jesteś świadomy/a, że prawo odstąpienia przysługuje w terminie 14 dni od zawarcia umowy (art. 27 Ustawy o prawach konsumenta).
+                        </p>
+                        {withdrawalStatus === 'error' && (
+                          <p className="text-xs text-destructive">Wystąpił błąd podczas wysyłania. Spróbuj ponownie lub napisz bezpośrednio na <strong>kontakt@bitbrew.pl</strong>.</p>
+                        )}
+                        <Button
+                          size="sm"
+                          onClick={handleWithdrawal}
+                          disabled={!withdrawalService.trim() || !withdrawalDate || withdrawalStatus === 'sending'}
+                          className="w-full gap-1.5"
+                        >
+                          {withdrawalStatus === 'sending'
+                            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Wysyłanie…</>
+                            : <><Mail className="w-3.5 h-3.5" /> Wyślij oświadczenie o odstąpieniu</>}
+                        </Button>
+                      </div>
+                    )}
+
+                    {withdrawalStatus === 'sent' && (
+                      <div className="flex flex-col items-center gap-2 py-5 text-center p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+                        <p className="text-sm font-medium text-foreground">Oświadczenie zostało wysłane</p>
+                        <p className="text-xs text-muted-foreground max-w-xs">
+                          Potwierdzenie zostało przesłane na Twój adres e-mail. Odpowiemy w ciągu 14 dni.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

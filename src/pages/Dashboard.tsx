@@ -10,10 +10,11 @@ import { SourceDonutChart } from '@/components/charts/SourceDonutChart';
 import { SourceTable } from '@/components/SourceTable';
 import BrandKnowledgeForm from '@/components/BrandKnowledgeForm';
 import { useBrewing } from '@/hooks/useBrewing';
+import { useTTS, loadVoicePrefs } from '@/hooks/useTTS';
 import { supabase } from '@/lib/supabase';
-import { FloatingPathsBackground } from '@/components/ui/floating-paths';
 import { cn } from '@/lib/utils';
 import { AnalysisResult } from '@/types/analysis';
+import { scoreBrand, type BrandScore } from '@/lib/brandScore';
 
 const PLAN_TIER: Record<string, number> = {
   free: 0,
@@ -119,8 +120,34 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
     return Math.round((pos / result.sources.length) * 100);
   }, [result.sources]);
 
+  const { speak, stop, playing, loading: ttsLoading } = useTTS();
+  const voiceEnabled = loadVoicePrefs().enabled;
+
+  const buildReportText = () => {
+    const lines = [
+      `Raport dla marki ${result.brandName}.`,
+      `Wynik zaufania AI: ${score} procent.`,
+      `Najsilniejszy wymiar: ${strongest[0]}, ${Math.round(strongest[1])} procent.`,
+      `Najsłabszy wymiar: ${weakest[0]}, ${Math.round(weakest[1])} procent.`,
+      `Średnia pewność modeli: ${avgConfidence} procent.`,
+      `Pozytywny sentyment: ${positiveRatio} procent.`,
+    ];
+    if (score < 60) lines.push('Uwaga: AI poleca Twoich konkurentów zamiast Ciebie. Twoja marka jest niewidoczna w wynikach modeli językowych.');
+    return lines.join(' ');
+  };
+
   return (
-    <FloatingPathsBackground position={1} className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden mb-6">
+    <div className="relative rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden mb-6">
+      {/* Gradient mesh background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute top-4 right-8 w-56 h-56 rounded-full bg-violet-500/8 blur-3xl" />
+        <div className="absolute -bottom-12 left-1/2 w-64 h-48 rounded-full bg-primary/6 blur-2xl" />
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+        />
+      </div>
       <div className="relative p-6 sm:p-8 lg:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           {/* Big score */}
@@ -148,6 +175,25 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
                 </span>
               )}
             </div>
+            {voiceEnabled && (
+              <button
+                onClick={() => playing ? stop() : speak(buildReportText())}
+                disabled={ttsLoading}
+                className={cn(
+                  'mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
+                  playing
+                    ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+                    : 'bg-primary/10 border-primary/20 text-primary hover:bg-primary/20'
+                )}
+              >
+                {ttsLoading
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : playing
+                  ? <Square className="w-3.5 h-3.5" />
+                  : <Volume2 className="w-3.5 h-3.5" />}
+                {ttsLoading ? 'Ładowanie...' : playing ? 'Zatrzymaj' : 'Czytaj raport'}
+              </button>
+            )}
           </div>
 
           {/* Verdict */}
@@ -194,8 +240,48 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
             <InsightRow label={t('dashboard_insight_3')} value={`${positiveRatio}%`} accent={positiveRatio >= 50} />
           </div>
         </div>
+
+        {/* "o k***wa moment" — competitor urgency banner for low-scoring brands */}
+        {score < 60 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.4 }}
+            className="mt-6 rounded-xl border border-red-500/30 bg-red-500/5 p-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center mt-0.5">
+                <Swords className="w-4 h-4 text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-red-300 mb-1">
+                  {t('dashboard_low_score_alert_title') !== 'dashboard_low_score_alert_title'
+                    ? t('dashboard_low_score_alert_title')
+                    : 'AI poleca Twoich konkurentów — nie Ciebie'}
+                </p>
+                <p className="text-xs text-red-300/70 leading-relaxed">
+                  {t('dashboard_low_score_alert_body') !== 'dashboard_low_score_alert_body'
+                    ? t('dashboard_low_score_alert_body')
+                    : `Wynik ${score}% oznacza, że gdy ktoś pyta ChatGPT lub Gemini o rozwiązanie w Twojej kategorii, modele rekomendują konkurencję. Twoja marka jest niewidoczna w AI — to bezpośrednia utrata klientów.`}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {result.sources?.slice(0, 3).map((s, i) => (
+                    <span key={i} className={cn(
+                      'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium',
+                      s.sentiment === 'Negative' ? 'bg-red-500/15 text-red-300' :
+                      s.sentiment === 'Neutral' ? 'bg-amber-500/10 text-amber-300' :
+                      'bg-emerald-500/10 text-emerald-300'
+                    )}>
+                      {s.model}: {s.sentiment === 'Negative' ? '✗ nie poleca' : s.sentiment === 'Neutral' ? '~ neutralny' : '✓ poleca'}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
-    </FloatingPathsBackground>
+    </div>
   );
 };
 
@@ -224,12 +310,40 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const t = useTranslation().t;
   const analysisId = searchParams.get('id');
-  const brandFromUrl = searchParams.get('brand') || 'Tesla';
+  const brandFromUrl = searchParams.get('brand') || '';
   const { progress, status, result, startBrewing, reset, loadStoredAnalysis, guestLimitReached } = useBrewing();
   const displayBrand = result?.brandName || brandFromUrl;
   const [inputValue, setInputValue] = useState(brandFromUrl);
+  const [moderationError, setModerationError] = useState('');
   const [plan, setPlan] = useState<string>('free');
   const planTier = tierOf(plan);
+  const isIdle = !brandFromUrl && !analysisId;
+
+  // Competitor comparison (deterministic client-side score — no API/credit cost)
+  const [competitorInput, setCompetitorInput] = useState('');
+  const [competitor, setCompetitor] = useState<BrandScore | null>(null);
+  const runCompare = () => {
+    const name = competitorInput.trim();
+    if (!name) return;
+    setCompetitor(scoreBrand(name));
+  };
+  const clearCompare = () => {
+    setCompetitor(null);
+    setCompetitorInput('');
+  };
+
+  // Embeddable badge
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
+  const badgeBrand = result?.brandName || brandFromUrl || 'Your Brand';
+  const badgeSrc = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.bitbrew.pl'}/.netlify/functions/badge?brand=${encodeURIComponent(badgeBrand)}`;
+  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="BitBrew AI Visibility" height="36" /></a>`;
+  const copyEmbed = async () => {
+    try {
+      await navigator.clipboard.writeText(embedCode);
+      setCopiedEmbed(true);
+      setTimeout(() => setCopiedEmbed(false), 2000);
+    } catch { /* ignore */ }
+  };
   const canSeeCharts = planTier >= 1;
   const canSeeSources = planTier >= 2;
 
@@ -250,19 +364,91 @@ const Dashboard = () => {
   useEffect(() => {
     if (analysisId) {
       loadStoredAnalysis(analysisId);
-    } else {
+    } else if (brandFromUrl) {
       startBrewing(brandFromUrl);
     }
     return () => reset();
   }, [analysisId, brandFromUrl, reset, startBrewing, loadStoredAnalysis]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const val = inputValue?.trim();
     if (!val) return;
+    setModerationError('');
+    try {
+      const res = await fetch('/.netlify/functions/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: val }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.flagged) {
+          setModerationError(data.reason || 'Niedozwolona treść.');
+          return;
+        }
+      }
+    } catch { /* network error — allow through */ }
     setSearchParams({ brand: val });
     startBrewing(val);
   };
+
+  if (isIdle) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-xl text-center"
+          >
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
+              <Search className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-display text-foreground mb-2">
+              Analiza marki
+            </h1>
+            <p className="text-muted-foreground text-sm mb-8">
+              Wpisz nazwę marki, którą chcesz przeanalizować
+            </p>
+            <form
+              onSubmit={handleSubmit}
+              className="flex items-center gap-2"
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  autoFocus
+                  value={inputValue}
+                  onChange={(e) => { setInputValue(e.target.value); setModerationError(''); }}
+                  placeholder="np. Apple, Tesla, Nike…"
+                  className="w-full bg-card/40 backdrop-blur-xl border border-[hsl(var(--glass-border))] text-foreground placeholder:text-muted-foreground text-base rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-primary/40 transition-colors"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!inputValue.trim()}
+                className="bg-primary text-primary-foreground px-5 py-3.5 rounded-xl text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap disabled:opacity-40"
+              >
+                {t('analyze')}
+              </button>
+            </form>
+            {moderationError && (
+              <p className="text-xs text-destructive mt-2 text-left">{moderationError}</p>
+            )}
+            {inputValue.trim().length > 1 && (
+              <div className="mt-6 text-left">
+                <BrandKnowledgeForm brandName={inputValue} />
+              </div>
+            )}
+          </motion.div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -300,7 +486,7 @@ const Dashboard = () => {
                 <input
                   type="text"
                   value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
+                  onChange={(e) => { setInputValue(e.target.value); setModerationError(''); }}
                   placeholder={t('placeholderExample')}
                   className="w-full bg-card/40 backdrop-blur-xl border border-[hsl(var(--glass-border))] text-foreground placeholder:text-muted-foreground text-sm rounded-xl py-2.5 pl-10 pr-3 focus:outline-none focus:border-primary/40 transition-colors"
                 />
@@ -339,8 +525,12 @@ const Dashboard = () => {
             </form>
           </div>
 
+          {moderationError && (
+            <p className="text-xs text-destructive mt-1">{moderationError}</p>
+          )}
+
           {/* Brand knowledge */}
-          {status === 'completed' && (
+          {inputValue.trim().length > 1 && (
             <BrandKnowledgeForm brandName={inputValue} />
           )}
 
@@ -393,8 +583,63 @@ const Dashboard = () => {
 
             {/* Grid */}
             <div className="grid grid-cols-12 gap-5">
-              <div className="col-span-12">
-                <RadarChartCard dimensions={result.dimensions} timestamp={result.timestamp} />
+              <div className="col-span-12 space-y-3">
+                {/* Competitor comparison bar */}
+                <div className="glass-card px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground shrink-0">
+                    <Swords className="w-4 h-4 text-primary" />
+                    {t('compare_title')}
+                  </div>
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="relative flex-1 sm:max-w-xs">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <input
+                        value={competitorInput}
+                        onChange={e => setCompetitorInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') runCompare(); }}
+                        placeholder={t('compare_placeholder')}
+                        className="w-full pl-8 h-9 text-sm rounded-lg border border-input bg-background text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                      />
+                    </div>
+                    <button
+                      onClick={runCompare}
+                      disabled={!competitorInput.trim()}
+                      className="h-9 px-4 text-sm font-medium rounded-lg bg-primary text-primary-foreground disabled:opacity-50 hover:opacity-90 transition-opacity"
+                    >
+                      {t('compare_action')}
+                    </button>
+                    {competitor && (
+                      <button
+                        onClick={clearCompare}
+                        aria-label={t('compare_clear')}
+                        className="h-9 w-9 flex items-center justify-center rounded-lg border border-input text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  {competitor && (
+                    <div className="text-sm shrink-0">
+                      {(() => {
+                        const diff = result.trustScore - competitor.trustScore;
+                        const winning = diff >= 0;
+                        return (
+                          <span className={cn('font-medium', winning ? 'text-emerald-400' : 'text-red-400')}>
+                            {winning ? '▲' : '▼'} {Math.abs(diff)} {t('compare_points')}
+                            <span className="text-muted-foreground font-normal"> {winning ? t('compare_ahead') : t('compare_behind')} {competitor.brandName}</span>
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+                <RadarChartCard
+                  dimensions={result.dimensions}
+                  timestamp={result.timestamp}
+                  brandName={result.brandName}
+                  competitorDimensions={competitor?.dimensions}
+                  competitorName={competitor?.brandName}
+                />
               </div>
               <div className="col-span-12 lg:col-span-7 relative">
                 <div className={canSeeCharts ? '' : 'pointer-events-none blur-sm select-none'} aria-hidden={!canSeeCharts}>
@@ -435,10 +680,36 @@ const Dashboard = () => {
                   />
                 )}
               </div>
+
+              {/* Embeddable badge */}
+              <div className="col-span-12">
+                <div className="glass-card p-6">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Layers className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-medium text-foreground">{t('embed_title')}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-4">{t('embed_desc')}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <img src={badgeSrc} alt="BitBrew AI Visibility badge" height={36} className="h-9 shrink-0" />
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <code className="flex-1 text-[11px] text-muted-foreground bg-background border border-input rounded-lg px-3 py-2 truncate font-data">
+                        {embedCode}
+                      </code>
+                      <button
+                        onClick={copyEmbed}
+                        className="h-9 px-4 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity shrink-0"
+                      >
+                        {copiedEmbed ? t('embed_copied') : t('embed_copy')}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
       </div>
+      {result && <Footer />}
     </div>
   );
 };
