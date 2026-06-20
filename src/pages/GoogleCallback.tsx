@@ -77,8 +77,7 @@ export default function GoogleCallback() {
       >
         <div className="rounded-2xl border border-[hsl(var(--glass-border))] bg-background/80 backdrop-blur-xl p-8 space-y-5">
           <Link to="/" className="inline-block">
-            <img src="/bitbrew-logo-cream.svg" alt="BitBrew" className="h-7 mx-auto dark:block hidden" />
-            <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-7 mx-auto dark:hidden block" />
+            <img src="/bitbrew-logo-ink.svg" alt="BitBrew" className="h-7 mx-auto" />
           </Link>
 
           {status === 'loading' && (

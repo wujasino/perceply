@@ -18,8 +18,7 @@ export const Footer = () => {
           {/* Brand column — wider on lg */}
           <div className="col-span-2 sm:col-span-4 lg:col-span-2 flex flex-col gap-5">
             <Link to="/" className="flex items-center gap-2.5 w-fit">
-              <img src="/bitbrew-logo-cream.svg" alt="BitBrew" className="h-7 w-auto dark:block hidden" />
-              <img src="/bitbrew-logo.svg" alt="BitBrew" className="h-7 w-auto dark:hidden block" />
+              <img src="/bitbrew-logo-ink.svg" alt="BitBrew" className="h-7 w-auto" />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               {t('footer_tagline')}
