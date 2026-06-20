@@ -1,9 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Sparkles, CreditCard, Code2, Settings, Users, Zap, LogOut, Bell } from 'lucide-react';
+import { Sparkles, CreditCard, Code2, Settings, Users, Zap, LogOut, Bell, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch-theme';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -17,6 +19,8 @@ const NAV_ITEMS = [
 export const AppNavbar = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
@@ -81,6 +85,13 @@ export const AppNavbar = () => {
             Ulepsz plan
           </Link>
         )}
+
+        <Switch
+          value={isDark}
+          onToggle={() => setTheme(isDark ? 'light' : 'dark')}
+          iconOn={<Moon className="w-3.5 h-3.5 text-primary" />}
+          iconOff={<Sun className="w-3.5 h-3.5 text-amber-500" />}
+        />
 
         <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
           <Bell className="w-4 h-4" />
