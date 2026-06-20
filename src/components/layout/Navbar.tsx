@@ -201,8 +201,12 @@ export const Navbar = () => {
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
 
-            {!authLoading && (
-              isAuthed ? (
+            {authLoading ? (
+              <div className="hidden md:flex items-center gap-2">
+                <div className="w-16 h-8 rounded-lg bg-muted animate-pulse" />
+                <div className="w-20 h-8 rounded-lg bg-muted animate-pulse" />
+              </div>
+            ) : isAuthed ? (
                 /* Avatar dropdown */
                 <Popover open={avatarOpen} onOpenChange={setAvatarOpen}>
                   <PopoverTrigger asChild>
@@ -261,15 +265,14 @@ export const Navbar = () => {
                 </Popover>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild>
                     <Link to="/login">{t('login')}</Link>
                   </Button>
                   <Button size="sm" asChild>
                     <Link to="/register">{t('register')}</Link>
                   </Button>
                 </div>
-              )
-            )}
+              )}
           </div>
 
         </div>
