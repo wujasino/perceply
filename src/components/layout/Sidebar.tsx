@@ -1,9 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, CreditCard, Sparkles, Code2, LogOut, Zap, Users } from 'lucide-react';
+import { Home, CreditCard, Sparkles, Code2, Zap, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { logout } from '@/lib/auth';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import { cn } from '@/lib/utils';
 
 const NavItem = ({
@@ -121,23 +120,6 @@ export const Sidebar = () => {
             Wyslij zaproszenie
           </Link>
         </div>
-
-        {/* Avatar row */}
-        {userEmail && (
-          <div className="flex items-center gap-2.5 px-3 py-2">
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={userAvatar ?? undefined} />
-              <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-gray-900 truncate">{userName || userEmail}</p>
-              <p className="text-[10px] text-gray-400 truncate">{plan}</p>
-            </div>
-            <button onClick={handleLogout} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Wyloguj">
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        )}
 
         {/* Upgrade CTA */}
         {plan === 'Free' && (
