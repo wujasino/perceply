@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { Zap, LogOut, Sun, Moon, Settings, User, Code2, CreditCard, ExternalLink } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Zap, LogOut, Sun, Moon, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
@@ -80,6 +80,39 @@ export const AppNavbar = () => {
   const usedPct = Math.min(100, Math.round((analysesUsed / limit) * 100));
   const remaining = Math.max(0, limit - analysesUsed);
 
+  // Feedback state
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const handleFeedbackSend = () => {
+    if (!feedbackText.trim()) return;
+    // TODO: wire to backend
+    setFeedbackSent(true);
+    setTimeout(() => { setFeedbackSent(false); setFeedbackText(''); setFeedbackOpen(false); }, 1500);
+  };
+
+  // AI Chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+  const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  const handleChatSend = () => {
+    if (!chatInput.trim()) return;
+    const msg = chatInput.trim();
+    setChatInput('');
+    setChatMessages(prev => [...prev, { role: 'user', text: msg }]);
+    // TODO: wire to AI backend
+    setTimeout(() => {
+      setChatMessages(prev => [...prev, { role: 'assistant', text: 'This feature is coming soon. Stay tuned!' }]);
+    }, 600);
+  };
+
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-2 border-b border-border bg-background/90 backdrop-blur px-6">
       {plan === 'Free' && (
@@ -98,6 +131,97 @@ export const AppNavbar = () => {
         iconOn={<Moon className="w-3.5 h-3.5 text-foreground" />}
         iconOff={<Sun className="w-3.5 h-3.5 text-amber-500" />}
       />
+
+      {/* Feedback */}
+      <Popover open={feedbackOpen} onOpenChange={setFeedbackOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" aria-label="Feedback">
+            <MessageSquare className="w-4 h-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-72 p-4">
+          <p className="text-sm font-semibold text-foreground mb-1">Send feedback</p>
+          <p className="text-xs text-muted-foreground mb-3">Tell us what you think or report an issue.</p>
+          {feedbackSent ? (
+            <p className="text-sm text-primary font-medium text-center py-2">Thanks for your feedback!</p>
+          ) : (
+            <>
+              <textarea
+                className="w-full rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-primary mb-2"
+                rows={4}
+                placeholder="Your feedback..."
+                value={feedbackText}
+                onChange={e => setFeedbackText(e.target.value)}
+              />
+              <button
+                onClick={handleFeedbackSend}
+                disabled={!feedbackText.trim()}
+                className="flex items-center gap-1.5 w-full justify-center py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send
+              </button>
+            </>
+          )}
+        </PopoverContent>
+      </Popover>
+
+      {/* AI Chat */}
+      {chatOpen && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col w-80 h-[420px] rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">AI Assistant</span>
+            </div>
+            <button onClick={() => setChatOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {chatMessages.length === 0 && (
+              <p className="text-xs text-muted-foreground text-center mt-8">Ask me anything about your brand visibility.</p>
+            )}
+            {chatMessages.map((m, i) => (
+              <div key={i} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
+                <div className={cn(
+                  'max-w-[85%] rounded-xl px-3 py-2 text-sm',
+                  m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
+                )}>
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            <div ref={chatBottomRef} />
+          </div>
+          <div className="flex items-center gap-2 px-3 py-3 border-t border-border">
+            <input
+              className="flex-1 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+              placeholder="Type a message..."
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleChatSend()}
+            />
+            <button
+              onClick={handleChatSend}
+              disabled={!chatInput.trim()}
+              className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
+            >
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+      <button
+        onClick={() => setChatOpen(o => !o)}
+        className={cn(
+          'flex items-center justify-center w-8 h-8 rounded-lg transition-colors',
+          chatOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+        )}
+        aria-label="AI Chat"
+      >
+        <Bot className="w-4 h-4" />
+      </button>
 
       <AvatarNotifications />
 
