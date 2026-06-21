@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, CreditCard, Sparkles, Code2, LogOut, Zap, Sun, Moon } from 'lucide-react';
+import { Home, CreditCard, Sparkles, Code2, LogOut, Zap, Sun, Moon, Users } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
