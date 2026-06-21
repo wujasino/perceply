@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { LogOut, User, Settings, Code2 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useTranslation } from '../../lib/locale';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
@@ -19,18 +20,18 @@ import { logout } from '@/lib/auth';
 const publicLinks = [
   { to: '/', key: 'home' },
   { to: '/dashboard', key: 'dashboard' },
-  { to: '/pricing', key: 'pricing' },
 ];
 
 const authedLinks = [
   { to: '/', key: 'home' },
   { to: '/dashboard', key: 'dashboard' },
-  { to: '/pricing', key: 'pricing' },
 ];
 
 export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/bitbrew-logo-cream.svg' : '/landing-page-logo.png';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
@@ -168,7 +169,7 @@ export const Navbar = () => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0">
-              <img src="/landing-page-logo.png" alt="BitBrew" className="h-7 w-auto" />
+              <img src={logoSrc} alt="BitBrew" className="h-7 w-auto" />
             </Link>
           </div>
 
