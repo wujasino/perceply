@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Home, CreditCard, Sparkles, Code2, Zap, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +45,8 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
   const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [plan, setPlan] = useState('Free');
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/bitbrew-logo-cream.svg' : '/landing-page-logo.png';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -69,7 +72,7 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
       <div className={cn('flex items-center p-4 pb-4', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
           <Link to="/">
-            <img src="/landing-page-logo.png" alt="BitBrew" className="h-6 w-auto" />
+            <img src={logoSrc} alt="BitBrew" className="h-6 w-auto" />
           </Link>
         )}
         <button
