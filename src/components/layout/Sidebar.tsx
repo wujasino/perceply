@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, CreditCard, Sparkles, Code2, Settings, LogOut, Users, Zap, Sun, Moon } from 'lucide-react';
+import { Home, CreditCard, Sparkles, Code2, LogOut, Zap, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
@@ -107,11 +107,6 @@ export const Sidebar = () => {
         <NavItem to="/pricing" icon={CreditCard} label="Cennik" active={pathname === '/pricing'} />
         <NavItem to="/developers" icon={Code2} label="API / Developers" badge="Dev" active={pathname === '/developers'} />
 
-        <div className="h-px bg-gray-100 my-1" />
-        <SectionLabel label="Konto" />
-
-        <NavItem to="/settings" icon={Settings} label="Ustawienia" active={pathname === '/settings'} />
-        <NavItem to="/profile" icon={Users} label="Profil" active={pathname === '/profile'} />
       </nav>
 
       {/* Bottom */}

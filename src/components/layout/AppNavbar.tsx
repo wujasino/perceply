@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Zap, LogOut, Sun, Moon } from 'lucide-react';
+import { Zap, LogOut, Sun, Moon, Settings, User, ChevronDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch-theme';
 import AvatarNotifications from '@/components/ui/avatar-notifications';
-import { Link } from 'react-router-dom';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
 export const AppNavbar = () => {
   const navigate = useNavigate();
@@ -62,23 +62,50 @@ export const AppNavbar = () => {
       <AvatarNotifications />
 
       {userEmail && (
-        <div className="flex items-center gap-2 pl-2 border-l border-border">
-          <Avatar className="h-7 w-7">
-            <AvatarImage src={userAvatar ?? undefined} />
-            <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="hidden sm:block min-w-0">
-            <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{userName || userEmail}</p>
-            <p className="text-[10px] text-muted-foreground">{plan}</p>
-          </div>
-          <button
-            onClick={async () => { await logout(); navigate('/'); }}
-            className="text-muted-foreground hover:text-foreground transition-colors ml-1"
-            aria-label="Wyloguj"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-2 pl-2 border-l border-border hover:opacity-80 transition-opacity">
+              <Avatar className="h-7 w-7">
+                <AvatarImage src={userAvatar ?? undefined} />
+                <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="hidden sm:block min-w-0 text-left">
+                <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{userName || userEmail}</p>
+                <p className="text-[10px] text-muted-foreground">{plan}</p>
+              </div>
+              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-48 p-1">
+            <div className="px-2 py-1.5 mb-1 border-b border-border">
+              <p className="text-xs font-semibold text-foreground truncate">{userName || userEmail}</p>
+              <p className="text-[10px] text-muted-foreground">{plan}</p>
+            </div>
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent transition-colors"
+            >
+              <User className="w-4 h-4 text-muted-foreground" />
+              Profil
+            </Link>
+            <Link
+              to="/settings"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent transition-colors"
+            >
+              <Settings className="w-4 h-4 text-muted-foreground" />
+              Ustawienia
+            </Link>
+            <div className="border-t border-border mt-1 pt-1">
+              <button
+                onClick={async () => { await logout(); navigate('/'); }}
+                className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Wyloguj
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
       )}
     </header>
   );
