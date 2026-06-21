@@ -1,5 +1,5 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Zap, LogOut, Sun, Moon, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
@@ -37,7 +37,14 @@ const SECTION_TITLES: Record<string, string> = {
   '/developers': 'Developers',
 };
 
-export const AppNavbar = ({ collapsed = false, onToggle }: { collapsed?: boolean; onToggle?: () => void }) => {
+interface AppNavbarProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
+  chatOpen?: boolean;
+  onChatToggle?: () => void;
+}
+
+export const AppNavbar = ({ collapsed = false, onToggle, chatOpen = false, onChatToggle }: AppNavbarProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const sectionTitle = SECTION_TITLES[pathname] ?? 'BitBrew';
@@ -62,7 +69,6 @@ export const AppNavbar = ({ collapsed = false, onToggle }: { collapsed?: boolean
         if (data?.plan) setPlan(data.plan.charAt(0).toUpperCase() + data.plan.slice(1));
       });
 
-      // Count analyses this month
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
@@ -97,31 +103,9 @@ export const AppNavbar = ({ collapsed = false, onToggle }: { collapsed?: boolean
 
   const handleFeedbackSend = () => {
     if (!feedbackText.trim()) return;
-    // TODO: wire to backend
     setFeedbackSent(true);
     setTimeout(() => { setFeedbackSent(false); setFeedbackText(''); setFeedbackOpen(false); }, 1500);
   };
-
-  // AI Chat state
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
-  const chatBottomRef = useRef<HTMLDivElement>(null);
-
-  const handleChatSend = () => {
-    if (!chatInput.trim()) return;
-    const msg = chatInput.trim();
-    setChatInput('');
-    setChatMessages(prev => [...prev, { role: 'user', text: msg }]);
-    // TODO: wire to AI backend
-    setTimeout(() => {
-      setChatMessages(prev => [...prev, { role: 'assistant', text: 'This feature is coming soon. Stay tuned!' }]);
-    }, 600);
-  };
-
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/90 backdrop-blur px-6">
@@ -157,7 +141,10 @@ export const AppNavbar = ({ collapsed = false, onToggle }: { collapsed?: boolean
       {/* Feedback */}
       <Popover open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <PopoverTrigger asChild>
-          <button className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors" aria-label="Feedback">
+          <button
+            className="flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            aria-label="Feedback"
+          >
             <MessageSquare className="w-4 h-4" />
           </button>
         </PopoverTrigger>
@@ -188,54 +175,9 @@ export const AppNavbar = ({ collapsed = false, onToggle }: { collapsed?: boolean
         </PopoverContent>
       </Popover>
 
-      {/* AI Chat */}
-      {chatOpen && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col w-80 h-[420px] rounded-2xl border border-border bg-background shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">AI Assistant</span>
-            </div>
-            <button onClick={() => setChatOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatMessages.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center mt-8">Ask me anything about your brand visibility.</p>
-            )}
-            {chatMessages.map((m, i) => (
-              <div key={i} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
-                <div className={cn(
-                  'max-w-[85%] rounded-xl px-3 py-2 text-sm',
-                  m.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
-                )}>
-                  {m.text}
-                </div>
-              </div>
-            ))}
-            <div ref={chatBottomRef} />
-          </div>
-          <div className="flex items-center gap-2 px-3 py-3 border-t border-border">
-            <input
-              className="flex-1 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="Type a message..."
-              value={chatInput}
-              onChange={e => setChatInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleChatSend()}
-            />
-            <button
-              onClick={handleChatSend}
-              disabled={!chatInput.trim()}
-              className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
-            >
-              <Send className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* AI Chat toggle */}
       <button
-        onClick={() => setChatOpen(o => !o)}
+        onClick={onChatToggle}
         className={cn(
           'flex items-center justify-center w-8 h-8 rounded-lg transition-colors',
           chatOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
