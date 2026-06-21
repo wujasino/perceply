@@ -10,6 +10,7 @@ import { loadVoicePrefs, saveVoicePrefs, VoicePrefs, AVAILABLE_VOICES } from '@/
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
@@ -502,64 +503,77 @@ export default function Settings() {
 
                   {/* Delete account */}
                   <div className="pt-4 border-t border-border">
-                    <p className="text-sm font-medium text-foreground mb-1">Usun konto</p>
-                    <p className="text-xs text-muted-foreground mb-3">Ta operacja jest nieodwracalna. Wszystkie dane zostana trwale usuniete.</p>
-
-                    {!showDeleteForm ? (
-                      <button
-                        onClick={() => setShowDeleteForm(true)}
-                        className="px-4 py-2 rounded-lg text-sm font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
-                      >
-                        <Trash2 className="inline w-3.5 h-3.5 mr-1.5" />
-                        Usun konto
-                      </button>
-                    ) : deleteStatus === 'done' ? (
-                      <p className="text-sm text-muted-foreground">Konto zostalo usuniete.</p>
-                    ) : (
-                      <div className="space-y-3 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
-                        <p className="text-xs font-medium text-destructive">Potwierdz usuniecie konta</p>
-
-                        <div className="flex gap-2 text-xs">
-                          <button
-                            onClick={() => setDeleteMethod('password')}
-                            className={cn('px-2 py-1 rounded border transition-colors', deleteMethod === 'password' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'border-border text-muted-foreground hover:bg-accent')}
-                          >
-                            Haslo
-                          </button>
-                          <button
-                            onClick={() => setDeleteMethod('2fa')}
-                            className={cn('px-2 py-1 rounded border transition-colors', deleteMethod === '2fa' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'border-border text-muted-foreground hover:bg-accent')}
-                          >
-                            Kod 2FA (jesli nie pamietam hasla)
-                          </button>
-                        </div>
-
-                        {deleteMethod === 'password' ? (
-                          <Input type="password" placeholder="Wpisz haslo" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} />
-                        ) : (
-                          <Input type="text" placeholder="Kod z aplikacji 2FA (6 cyfr)" maxLength={6} value={deleteTotpCode} onChange={e => setDeleteTotpCode(e.target.value.replace(/\D/g, ''))} />
-                        )}
-
-                        {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => { setShowDeleteForm(false); setDeletePassword(''); setDeleteTotpCode(''); setDeleteError(''); }}
-                            className="px-3 py-1.5 rounded text-xs border border-border text-muted-foreground hover:bg-accent transition-colors"
-                          >
-                            Anuluj
-                          </button>
-                          <button
-                            disabled={deleteStatus === 'deleting'}
-                            onClick={handleDeleteAccount}
-                            className="px-3 py-1.5 rounded text-xs font-medium bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-50"
-                          >
-                            {deleteStatus === 'deleting' ? 'Usuwanie...' : 'Potwierdz i usun konto'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    <p className="text-sm font-medium text-foreground mb-1">Usuń konto</p>
+                    <p className="text-xs text-muted-foreground mb-3">Ta operacja jest nieodwracalna. Wszystkie dane zostaną trwale usunięte.</p>
+                    <button
+                      onClick={() => setShowDeleteForm(true)}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
+                    >
+                      <Trash2 className="inline w-3.5 h-3.5 mr-1.5" />
+                      Usuń konto
+                    </button>
                   </div>
+
+                  {/* Delete account dialog */}
+                  <Dialog open={showDeleteForm} onOpenChange={(open) => {
+                    if (!open) { setShowDeleteForm(false); setDeletePassword(''); setDeleteTotpCode(''); setDeleteError(''); setDeleteStatus('idle'); }
+                  }}>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="text-destructive flex items-center gap-2">
+                          <Trash2 className="w-4 h-4" /> Usuń konto
+                        </DialogTitle>
+                        <DialogDescription>
+                          Ta operacja jest nieodwracalna. Wszystkie Twoje dane zostaną trwale usunięte.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      {deleteStatus === 'done' ? (
+                        <p className="text-sm text-muted-foreground py-2">Konto zostało usunięte.</p>
+                      ) : (
+                        <div className="space-y-4 py-2">
+                          <div className="flex gap-2 text-xs">
+                            <button
+                              onClick={() => setDeleteMethod('password')}
+                              className={cn('px-3 py-1.5 rounded border transition-colors', deleteMethod === 'password' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'border-border text-muted-foreground hover:bg-accent')}
+                            >
+                              Hasło
+                            </button>
+                            <button
+                              onClick={() => setDeleteMethod('2fa')}
+                              className={cn('px-3 py-1.5 rounded border transition-colors', deleteMethod === '2fa' ? 'bg-destructive/10 border-destructive/30 text-destructive' : 'border-border text-muted-foreground hover:bg-accent')}
+                            >
+                              Kod 2FA (nie pamiętam hasła)
+                            </button>
+                          </div>
+
+                          {deleteMethod === 'password' ? (
+                            <Input type="password" placeholder="Wpisz hasło" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} />
+                          ) : (
+                            <Input type="text" placeholder="Kod z aplikacji 2FA (6 cyfr)" maxLength={6} value={deleteTotpCode} onChange={e => setDeleteTotpCode(e.target.value.replace(/\D/g, ''))} />
+                          )}
+
+                          {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
+
+                          <div className="flex gap-2 justify-end pt-2">
+                            <button
+                              onClick={() => { setShowDeleteForm(false); setDeletePassword(''); setDeleteTotpCode(''); setDeleteError(''); }}
+                              className="px-4 py-2 rounded-lg text-sm border border-border text-muted-foreground hover:bg-accent transition-colors"
+                            >
+                              Anuluj
+                            </button>
+                            <button
+                              disabled={deleteStatus === 'deleting'}
+                              onClick={handleDeleteAccount}
+                              className="px-4 py-2 rounded-lg text-sm font-medium bg-destructive text-white hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                            >
+                              {deleteStatus === 'deleting' ? 'Usuwanie...' : 'Potwierdź i usuń'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
                 </>
               )}
 
