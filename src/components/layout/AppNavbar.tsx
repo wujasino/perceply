@@ -1,23 +1,14 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Sparkles, CreditCard, Code2, Settings, Users, Zap, LogOut, Bell, Sun, Moon } from 'lucide-react';
+import { Zap, LogOut, Bell, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch-theme';
-import { cn } from '@/lib/utils';
-
-const NAV_ITEMS = [
-  { to: '/dashboard',  icon: Sparkles,   label: 'Analiza AI' },
-  { to: '/pricing',    icon: CreditCard,  label: 'Cennik' },
-  { to: '/developers', icon: Code2,       label: 'API', badge: 'Dev' },
-  { to: '/settings',   icon: Settings,    label: 'Ustawienia' },
-  { to: '/profile',    icon: Users,       label: 'Profil' },
-];
+import { Link } from 'react-router-dom';
 
 export const AppNavbar = () => {
-  const { pathname } = useLocation();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
   const isDark = theme === 'dark';
@@ -49,74 +40,47 @@ export const AppNavbar = () => {
     : userEmail ? userEmail[0].toUpperCase() : '?';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-gray-100 bg-white/90 backdrop-blur px-6">
-      {/* Nav links */}
-      <nav className="flex items-center gap-1 flex-1">
-        {NAV_ITEMS.map(({ to, icon: Icon, label, badge }) => (
-          <Link
-            key={to}
-            to={to}
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors',
-              pathname === to
-                ? 'bg-gray-100 text-gray-900 font-medium'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-            )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
-            {badge && (
-              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary">
-                {badge}
-              </span>
-            )}
-          </Link>
-        ))}
-      </nav>
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-end gap-2 border-b border-border bg-background/90 backdrop-blur px-6">
+      {plan === 'Free' && (
+        <Link
+          to="/pricing"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+        >
+          <Zap className="w-3.5 h-3.5" />
+          Ulepsz plan
+        </Link>
+      )}
 
-      {/* Right side */}
-      <div className="flex items-center gap-2">
-        {plan === 'Free' && (
-          <Link
-            to="/pricing"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
-          >
-            <Zap className="w-3.5 h-3.5" />
-            Ulepsz plan
-          </Link>
-        )}
+      <Switch
+        value={isDark}
+        onToggle={() => setTheme(isDark ? 'light' : 'dark')}
+        iconOn={<Moon className="w-3.5 h-3.5 text-foreground" />}
+        iconOff={<Sun className="w-3.5 h-3.5 text-amber-500" />}
+      />
 
-        <Switch
-          value={isDark}
-          onToggle={() => setTheme(isDark ? 'light' : 'dark')}
-          iconOn={<Moon className="w-3.5 h-3.5 text-primary" />}
-          iconOff={<Sun className="w-3.5 h-3.5 text-amber-500" />}
-        />
+      <button className="w-8 h-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+        <Bell className="w-4 h-4" />
+      </button>
 
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-          <Bell className="w-4 h-4" />
-        </button>
-
-        {userEmail && (
-          <div className="flex items-center gap-2 pl-2 border-l border-gray-100">
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={userAvatar ?? undefined} />
-              <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="hidden sm:block min-w-0">
-              <p className="text-xs font-medium text-gray-900 truncate max-w-[120px]">{userName || userEmail}</p>
-              <p className="text-[10px] text-gray-400">{plan}</p>
-            </div>
-            <button
-              onClick={async () => { await logout(); navigate('/'); }}
-              className="text-gray-400 hover:text-gray-600 transition-colors ml-1"
-              aria-label="Wyloguj"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
+      {userEmail && (
+        <div className="flex items-center gap-2 pl-2 border-l border-border">
+          <Avatar className="h-7 w-7">
+            <AvatarImage src={userAvatar ?? undefined} />
+            <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="hidden sm:block min-w-0">
+            <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{userName || userEmail}</p>
+            <p className="text-[10px] text-muted-foreground">{plan}</p>
           </div>
-        )}
-      </div>
+          <button
+            onClick={async () => { await logout(); navigate('/'); }}
+            className="text-muted-foreground hover:text-foreground transition-colors ml-1"
+            aria-label="Wyloguj"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </header>
   );
 };
