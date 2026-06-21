@@ -207,62 +207,15 @@ export const Navbar = () => {
                 <div className="w-20 h-8 rounded-lg bg-muted animate-pulse" />
               </div>
             ) : isAuthed ? (
-                /* Avatar dropdown */
-                <Popover open={avatarOpen} onOpenChange={setAvatarOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring/70 transition-opacity hover:opacity-80"
-                      aria-label="User menu"
-                    >
-                      <Avatar className="h-8 w-8 cursor-pointer">
-                        <AvatarImage src={userAvatar ?? undefined} alt={userEmail ?? ''} />
-                        <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-52 p-2">
-                    <div className="px-2 py-1.5 mb-1">
-                      {userName && (
-                        <p className="text-xs font-semibold text-foreground truncate">{userName}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-                    </div>
-                    <div className="h-px bg-border mb-1" />
-                    <Link
-                      to="/profile"
-                      onClick={() => setAvatarOpen(false)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                    >
-                      <User className="w-4 h-4" />
-                      {t('profile')}
-                    </Link>
-                    <Link
-                      to="/settings"
-                      onClick={() => setAvatarOpen(false)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                    >
-                      <Settings className="w-4 h-4" />
-                      {t('settings')}
-                    </Link>
-                    <Link
-                      to="/developers"
-                      onClick={() => setAvatarOpen(false)}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                    >
-                      <Code2 className="w-4 h-4" />
-                      Developers
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center gap-2 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      {t('logout')}
-                    </button>
-                  </PopoverContent>
-                </Popover>
+                /* Avatar — click goes to dashboard */
+                <Link to="/dashboard" aria-label="Panel">
+                  <Avatar className="h-8 w-8 cursor-pointer hover:opacity-80 transition-opacity">
+                    <AvatarImage src={userAvatar ?? undefined} alt={userEmail ?? ''} />
+                    <AvatarFallback className="text-xs font-semibold bg-primary text-primary-foreground">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
                   <Button variant="outline" size="sm" asChild>
