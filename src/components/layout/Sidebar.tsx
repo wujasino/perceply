@@ -71,7 +71,7 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
       {/* Logo + collapse button */}
       <div className={cn('flex items-center p-4 pb-4', collapsed ? 'justify-center' : 'justify-between')}>
         {!collapsed && (
-          <Link to="/">
+          <Link to="/dashboard">
             <img src={logoSrc} alt="BitBrew" className="h-6 w-auto" />
           </Link>
         )}
@@ -99,7 +99,7 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
 
       {/* Main nav */}
       <nav className="flex-1 overflow-y-auto px-2 pt-2 space-y-0.5">
-        <NavItem to="/" icon={Home} label="Strona główna" active={pathname === '/'} collapsed={collapsed} />
+        <NavItem to="/dashboard" icon={Home} label="Strona główna" active={pathname === '/dashboard'} collapsed={collapsed} />
 
         <SectionLabel label="Narzędzia" collapsed={collapsed} />
 
