@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, CreditCard, Sparkles, Code2, Zap, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, CreditCard, Sparkles, Code2, Zap, Users } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
@@ -40,10 +41,11 @@ const SectionLabel = ({ label, collapsed }: { label: string; collapsed: boolean 
     <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">{label}</p>
   );
 
-export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => void }) => {
+export const Sidebar = ({ collapsed = false }: { collapsed?: boolean }) => {
   const { pathname } = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const [plan, setPlan] = useState('Free');
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/bitbrew-logo-cream.svg' : '/landing-page-logo.png';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -54,31 +56,20 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
     });
   }, []);
 
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    onCollapse?.(next);
-  };
-
   return (
     <aside className={cn(
       'fixed left-0 top-0 bottom-0 flex flex-col bg-background border-r border-border z-40 transition-all duration-200',
       collapsed ? 'w-14' : 'w-60'
     )}>
-      {/* Logo + collapse button */}
-      <div className={cn('flex items-center p-4 pb-4', collapsed ? 'justify-center' : 'justify-between')}>
-        {!collapsed && (
-          <Link to="/">
-            <img src="/landing-page-logo.png" alt="BitBrew" className="h-6 w-auto" />
+      {/* Logo */}
+      <div className={cn('flex items-center p-4 pb-4', collapsed ? 'justify-center' : 'justify-start')}>
+        {!collapsed ? (
+          <Link to="/dashboard">
+            <img src={logoSrc} alt="BitBrew" className="h-6 w-auto" />
           </Link>
+        ) : (
+          <Link to="/dashboard" className="w-2 h-2 rounded-full bg-primary" aria-label="BitBrew" />
         )}
-        <button
-          onClick={toggle}
-          className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-          aria-label={collapsed ? 'Rozwiń panel' : 'Zwiń panel'}
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
       </div>
 
       <div className="h-px bg-border mx-3" />
@@ -96,17 +87,19 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
 
       {/* Main nav */}
       <nav className="flex-1 overflow-y-auto px-2 pt-2 space-y-0.5">
-        <NavItem to="/" icon={Home} label="Strona główna" active={pathname === '/'} collapsed={collapsed} />
+        <NavItem to="/dashboard" icon={Home} label="Strona główna" active={pathname === '/dashboard'} collapsed={collapsed} />
 
         <SectionLabel label="Narzędzia" collapsed={collapsed} />
 
         <NavItem to="/dashboard" icon={Sparkles} label="Analiza AI" active={pathname === '/dashboard'} collapsed={collapsed} />
         <NavItem to="/pricing" icon={CreditCard} label="Cennik" active={pathname === '/pricing'} collapsed={collapsed} />
-        <NavItem to="/developers" icon={Code2} label="API / Developers" badge="Dev" active={pathname === '/developers'} collapsed={collapsed} />
       </nav>
 
       {/* Bottom */}
       <div className={cn('p-3 border-t border-border space-y-1', collapsed && 'flex flex-col items-center')}>
+        {/* Developers link */}
+        <NavItem to="/developers" icon={Code2} label="Developers" badge="Dev" active={pathname === '/developers'} collapsed={collapsed} />
+
         {/* Invite card — hidden when collapsed */}
         {!collapsed && (
           <div className="p-3 rounded-xl bg-muted border border-border mb-2">
