@@ -105,11 +105,13 @@ export const Sidebar = ({ onCollapse }: { onCollapse?: (collapsed: boolean) => v
 
         <NavItem to="/dashboard" icon={Sparkles} label="Analiza AI" active={pathname === '/dashboard'} collapsed={collapsed} />
         <NavItem to="/pricing" icon={CreditCard} label="Cennik" active={pathname === '/pricing'} collapsed={collapsed} />
-        <NavItem to="/developers" icon={Code2} label="API / Developers" badge="Dev" active={pathname === '/developers'} collapsed={collapsed} />
       </nav>
 
       {/* Bottom */}
       <div className={cn('p-3 border-t border-border space-y-1', collapsed && 'flex flex-col items-center')}>
+        {/* Developers link */}
+        <NavItem to="/developers" icon={Code2} label="Developers" badge="Dev" active={pathname === '/developers'} collapsed={collapsed} />
+
         {/* Invite card — hidden when collapsed */}
         {!collapsed && (
           <div className="p-3 rounded-xl bg-muted border border-border mb-2">
