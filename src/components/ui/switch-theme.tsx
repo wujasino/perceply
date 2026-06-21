@@ -12,7 +12,7 @@ type SwitchProps = {
 export function Switch({ value, onToggle, iconOn, iconOff, className = "" }: SwitchProps) {
   return (
     <button
-      className={`bg-card-foreground/15 flex w-12 cursor-pointer rounded-full p-0.5 ${
+      className={`bg-muted border border-border flex w-12 cursor-pointer rounded-full p-0.5 ${
         value ? "justify-end" : "justify-start"
       } ${className}`}
       onClick={onToggle}
