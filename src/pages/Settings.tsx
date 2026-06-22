@@ -573,10 +573,9 @@ export default function Settings() {
                       )}
                     </DialogContent>
                   </Dialog>
-                </>
 
-                {/* AI Voice */}
-                <div className="h-px bg-border" />
+                  {/* AI Voice */}
+                  <div className="h-px bg-border" />
                 <div>
                   <label className="text-sm font-medium text-foreground block mb-1">
                     <Volume2 className="inline w-4 h-4 mr-1.5 text-primary" />
@@ -624,7 +623,8 @@ export default function Settings() {
                       ))}
                     </div>
                   )}
-                </div>
+                  </div>
+                </>
               )}
 
               {/* NOTIFICATIONS */}
