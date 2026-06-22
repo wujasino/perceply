@@ -179,25 +179,23 @@ export const AppNavbar = ({ collapsed = false, onToggle, chatOpen = false, onCha
       <AvatarNotifications />
 
       {userEmail && (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <TooltipProvider delayDuration={400}>
-              <Tooltip>
-                <TooltipTrigger asChild>
+        <TooltipProvider delayDuration={400}>
+          <Tooltip>
+            <Popover open={open} onOpenChange={setOpen}>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
                   <button className="flex items-center gap-2 pl-2 border-l border-border hover:opacity-80 transition-opacity">
                     <Avatar className="h-7 w-7 cursor-pointer">
                       <AvatarImage src={userAvatar ?? undefined} />
                       <AvatarFallback className="text-xs bg-primary text-primary-foreground">{initials}</AvatarFallback>
                     </Avatar>
                   </button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  <p className="font-medium">{plan} — credits this month</p>
-                  <p className="text-muted-foreground">{analysesUsed} / {limit} used ({usedPct}%)</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </PopoverTrigger>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                <p className="font-medium">{plan} — credits this month</p>
+                <p className="text-muted-foreground">{analysesUsed} / {limit} used ({usedPct}%)</p>
+              </TooltipContent>
 
           <PopoverContent align="end" className="w-64 p-0 overflow-hidden">
             {/* Balance */}
@@ -254,7 +252,9 @@ export const AppNavbar = ({ collapsed = false, onToggle, chatOpen = false, onCha
               </button>
             </div>
           </PopoverContent>
-        </Popover>
+            </Popover>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </header>
   );
