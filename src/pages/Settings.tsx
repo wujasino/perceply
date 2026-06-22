@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { TotpSetup } from '@/components/ui/totp-setup';
 import { useNavigate } from 'react-router-dom';
 import {
-  User, Bell, Shield, Trash2, Moon, Globe, Save,
+  User, Bell, Shield, Trash2, Save,
   Upload, Camera, Loader2, KeyRound, Check, Mail, ArrowRight, ArrowLeft,
   Eye, EyeOff, CheckCircle2, Circle, CreditCard, Download, FileText, Volume2,
 } from 'lucide-react';
@@ -15,11 +15,10 @@ import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
-type Tab = 'account' | 'appearance' | 'notifications' | 'security' | 'privacy' | 'billing';
+type Tab = 'account' | 'notifications' | 'security' | 'privacy' | 'billing';
 
 const tabs: { id: Tab; labelKey: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'account',       labelKey: 'settings_tab_account',       icon: User },
-  { id: 'appearance',    labelKey: 'settings_tab_appearance',    icon: Moon },
   { id: 'notifications', labelKey: 'settings_tab_notifications', icon: Bell },
   { id: 'security',      labelKey: 'settings_tab_security',      icon: KeyRound },
   { id: 'privacy',       labelKey: 'settings_tab_privacy',       icon: Shield },
@@ -28,7 +27,7 @@ const tabs: { id: Tab; labelKey: string; icon: React.FC<{ className?: string }> 
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { t, locale, setLocale } = useTranslation();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('account');
   const [voicePrefs, setVoicePrefs] = useState<VoicePrefs>(loadVoicePrefs);
 
@@ -575,93 +574,56 @@ export default function Settings() {
                     </DialogContent>
                   </Dialog>
                 </>
-              )}
 
-              {/* APPEARANCE */}
-              {activeTab === 'appearance' && (
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-sm font-medium text-foreground block mb-3">
-                      <Globe className="inline w-4 h-4 mr-1.5 text-primary" />
-                      {t('settings_language')}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {([
-                        { code: 'pl', label: 'Polski'    },
-                        { code: 'en', label: 'English'   },
-                        { code: 'de', label: 'Deutsch'   },
-                        { code: 'fr', label: 'Francais'  },
-                        { code: 'es', label: 'Espanol'   },
-                        { code: 'it', label: 'Italiano'  },
-                      ] as const).map(({ code, label }) => (
+                {/* AI Voice */}
+                <div className="h-px bg-border" />
+                <div>
+                  <label className="text-sm font-medium text-foreground block mb-1">
+                    <Volume2 className="inline w-4 h-4 mr-1.5 text-primary" />
+                    AI Voice (report reading)
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Play the report aloud after analysis completes. Requires an ElevenLabs key in the Netlify panel.
+                  </p>
+                  <div className="flex items-center justify-between p-3 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 mb-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Enable read aloud</p>
+                      <p className="text-xs text-muted-foreground">A button will appear in the analysis report</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const p = { ...voicePrefs, enabled: !voicePrefs.enabled };
+                        setVoicePrefs(p);
+                        saveVoicePrefs(p);
+                      }}
+                      className={cn('relative w-10 h-6 rounded-full transition-colors', voicePrefs.enabled ? 'bg-primary' : 'bg-muted')}
+                    >
+                      <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200', voicePrefs.enabled ? 'left-5' : 'left-1')} />
+                    </button>
+                  </div>
+                  {voicePrefs.enabled && (
+                    <div className="grid grid-cols-2 gap-2">
+                      {AVAILABLE_VOICES.map(v => (
                         <button
-                          key={code}
-                          onClick={() => setLocale(code)}
+                          key={v.id}
+                          onClick={() => {
+                            const p = { ...voicePrefs, voiceId: v.id };
+                            setVoicePrefs(p);
+                            saveVoicePrefs(p);
+                          }}
                           className={cn(
-                            'px-4 py-2 rounded-lg text-sm border transition-colors',
-                            locale === code
-                              ? 'bg-primary text-primary-foreground border-primary'
+                            'flex flex-col items-start p-3 rounded-xl border text-left transition-colors',
+                            voicePrefs.voiceId === v.id
+                              ? 'bg-primary/10 border-primary text-primary'
                               : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
                           )}
                         >
-                          {label}
+                          <span className="text-sm font-medium">{v.name}</span>
+                          <span className="text-[11px] opacity-70">{v.description}</span>
                         </button>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="h-px bg-border" />
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground block mb-1">
-                      <Volume2 className="inline w-4 h-4 mr-1.5 text-primary" />
-                      AI Voice (report reading)
-                    </label>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Play the report aloud after analysis completes. Requires an ElevenLabs key in the Netlify panel.
-                    </p>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20 mb-3">
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Enable read aloud</p>
-                        <p className="text-xs text-muted-foreground">A button will appear in the analysis report</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          const p = { ...voicePrefs, enabled: !voicePrefs.enabled };
-                          setVoicePrefs(p);
-                          saveVoicePrefs(p);
-                        }}
-                        className={cn('relative w-10 h-6 rounded-full transition-colors', voicePrefs.enabled ? 'bg-primary' : 'bg-muted')}
-                      >
-                        <span className={cn('absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200', voicePrefs.enabled ? 'left-5' : 'left-1')} />
-                      </button>
-                    </div>
-
-                    {voicePrefs.enabled && (
-                      <div className="grid grid-cols-2 gap-2">
-                        {AVAILABLE_VOICES.map(v => (
-                          <button
-                            key={v.id}
-                            onClick={() => {
-                              const p = { ...voicePrefs, voiceId: v.id };
-                              setVoicePrefs(p);
-                              saveVoicePrefs(p);
-                            }}
-                            className={cn(
-                              'flex flex-col items-start p-3 rounded-xl border text-left transition-colors',
-                              voicePrefs.voiceId === v.id
-                                ? 'bg-primary/10 border-primary text-primary'
-                                : 'border-input text-muted-foreground hover:text-foreground hover:bg-accent'
-                            )}
-                          >
-                            <span className="text-sm font-medium">{v.name}</span>
-                            <span className="text-[11px] opacity-70">{v.description}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               )}
 
