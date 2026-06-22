@@ -4,12 +4,10 @@ import { Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useTranslation } from '@/lib/locale';
 
 type Status = 'idle' | 'sending' | 'success' | 'error';
 
 export function ContactForm() {
-  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
@@ -43,18 +41,18 @@ export function ContactForm() {
       <div className="space-y-6">
         <div>
           <h3 className="text-xl font-display text-foreground mb-2">
-            {t('contact_heading') || 'Napisz do nas'}
+            Get in touch
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {t('contact_subheading') || 'Masz pytanie o produkt, chcesz omówić plan Enterprise lub po prostu chcesz się przywitać? Odpisujemy w ciągu 24 godzin.'}
+            Have a question about the product, want to discuss an Enterprise plan, or just want to say hello? We reply within 24 hours.
           </p>
         </div>
 
         <div className="space-y-4">
           {[
             { icon: '📧', label: 'Email', value: 'kontakt@bitbrew.pl', href: 'mailto:kontakt@bitbrew.pl' },
-            { icon: '⚡', label: t('contact_response_time') || 'Czas odpowiedzi', value: '< 24h', href: null },
-            { icon: '🌍', label: t('contact_languages') || 'Języki', value: 'PL / EN', href: null },
+            { icon: '⚡', label: 'Response time', value: '< 24h', href: null },
+            { icon: '🌍', label: 'Languages', value: 'PL / EN', href: null },
           ].map(item => (
             <div key={item.label} className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg shrink-0">
@@ -89,15 +87,11 @@ export function ContactForm() {
                 <CheckCircle2 className="w-7 h-7 text-green-500" />
               </div>
               <div>
-                <h4 className="font-display text-foreground text-lg">
-                  {t('contact_success_title') || 'Wiadomość wysłana!'}
-                </h4>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('contact_success_desc') || 'Odezwiemy się w ciągu 24 godzin.'}
-                </p>
+                <h4 className="font-display text-foreground text-lg">Message sent!</h4>
+                <p className="text-sm text-muted-foreground mt-1">We'll get back to you within 24 hours.</p>
               </div>
               <Button variant="outline" size="sm" onClick={() => setStatus('idle')}>
-                {t('contact_send_another') || 'Send another'}
+                Send another
               </Button>
             </motion.div>
           ) : (
@@ -111,12 +105,12 @@ export function ContactForm() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {t('contact_name') || 'Imię i nazwisko'} *
+                    Full name *
                   </Label>
                   <Input
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Jan Kowalski"
+                    placeholder="John Smith"
                     required
                     minLength={2}
                     maxLength={120}
@@ -125,13 +119,13 @@ export function ContactForm() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {t('email')} *
+                    Email *
                   </Label>
                   <Input
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="jan@firma.pl"
+                    placeholder="john@company.com"
                     required
                     className="h-10"
                   />
@@ -140,12 +134,12 @@ export function ContactForm() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {t('contact_subject') || 'Temat'}
+                  Subject
                 </Label>
                 <Input
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
-                  placeholder={t('contact_subject_placeholder') || 'Pytanie o plan Enterprise...'}
+                  placeholder="Question about Enterprise plan..."
                   maxLength={200}
                   className="h-10"
                 />
@@ -153,12 +147,12 @@ export function ContactForm() {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {t('contact_message') || 'Wiadomość'} *
+                  Message *
                 </Label>
                 <textarea
                   value={message}
                   onChange={e => setMessage(e.target.value)}
-                  placeholder={t('contact_message_placeholder') || 'Opisz swoje pytanie lub potrzeby...'}
+                  placeholder="Describe your question or needs..."
                   required
                   minLength={10}
                   maxLength={4000}
@@ -186,12 +180,12 @@ export function ContactForm() {
                 {status === 'sending' ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    {t('contact_sending') || 'Wysyłanie...'}
+                    Sending...
                   </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
-                    {t('contact_send') || 'Send message'}
+                    Send message
                   </>
                 )}
               </Button>
