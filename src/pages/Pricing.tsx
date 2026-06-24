@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, AlertTriangle } from 'lucide-react';
-import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { PricingCards, type PricingTierCard } from '@/components/ui/pricing-cards';
 import { Button } from '@/components/ui/button';
@@ -26,30 +25,29 @@ const USD = {
 };
 
 const PLN = {
-  solo_monthly: '99 zl',
-  solo_yearly: '950 zl',
-  growth_monthly: '249 zl',
-  growth_yearly: '2 350 zl',
-  credits_20: '39 zl',
-  credits_50: '79 zl',
-  credits_120: '169 zl',
+  solo_monthly: '99 zł',
+  solo_yearly: '950 zł',
+  growth_monthly: '249 zł',
+  growth_yearly: '2 350 zł',
+  credits_20: '39 zł',
+  credits_50: '79 zł',
+  credits_120: '169 zł',
 };
 
 const SOCIAL_PROOF_BRANDS = ['Shopify Plus', 'Brainly', 'Booksy', 'inPost', 'Tidio', 'Packhelp'];
 
 const Pricing = () => {
-  const { t, locale } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [currency, setCurrency] = useState<'pln' | 'usd'>(locale === 'pl' ? 'pln' : 'usd');
+  const [currency, setCurrency] = useState<'pln' | 'usd'>('usd');
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   const prices = currency === 'pln' ? PLN : USD;
-  const period_month = currency === 'pln' ? t('tier_period_month') : '/mo';
-  const period_year  = currency === 'pln' ? t('tier_period_year')  : '/yr';
+  const period_month = '/mo';
+  const period_year  = '/yr';
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
@@ -57,13 +55,9 @@ const Pricing = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('success'))  setMessage(t('pricing_payment_success'));
-    if (params.get('canceled')) setMessage(t('pricing_payment_cancelled'));
+    if (params.get('success'))  setMessage('Payment successful! Your plan has been activated.');
+    if (params.get('canceled')) setMessage('Payment was cancelled.');
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    setCurrency(locale === 'pl' ? 'pln' : 'usd');
-  }, [locale]);
 
   const confirmDowngrade = () => {
     setShowDowngradeDialog(false);
@@ -92,7 +86,7 @@ const Pricing = () => {
         ? import.meta.env.VITE_STRIPE_SOLO_PRICE_ID
         : import.meta.env.VITE_STRIPE_GROWTH_PRICE_ID;
 
-      if (!priceId) { setMessage(t('pricing_error_stripe_config')); return; }
+      if (!priceId) { setMessage('Stripe is not configured. Please contact support.'); return; }
 
       const response = await fetch('/.netlify/functions/create-checkout', {
         method: 'POST',
@@ -107,24 +101,24 @@ const Pricing = () => {
         let err = `HTTP ${response.status}`;
         try { const d = await response.json(); err = d.error || err; } catch {}
         console.error(err);
-        setMessage(t('pricing_error_payment'));
+        setMessage('Could not start payment. Please try again later.');
         return;
       }
 
       const data = await response.json();
-      if (!data?.url) { setMessage(data?.error || t('pricing_error_session')); return; }
+      if (!data?.url) { setMessage(data?.error || 'Could not create payment session.'); return; }
       window.location.href = data.url;
     } catch {
-      setMessage(t('pricing_error_connection'));
+      setMessage('Connection error. Please try again.');
     } finally {
       setLoading(null);
     }
   };
 
   const creditPacks = [
-    { id: 'credits_20',  label: t('credits_pack_20'),  price: prices.credits_20,  analyses: 20,  popular: false },
-    { id: 'credits_50',  label: t('credits_pack_50'),  price: prices.credits_50,  analyses: 50,  popular: true  },
-    { id: 'credits_120', label: t('credits_pack_120'), price: prices.credits_120, analyses: 120, popular: false },
+    { id: 'credits_20',  label: '20 extra analyses',  price: prices.credits_20,  analyses: 20,  popular: false },
+    { id: 'credits_50',  label: '50 extra analyses',  price: prices.credits_50,  analyses: 50,  popular: true  },
+    { id: 'credits_120', label: '120 extra analyses', price: prices.credits_120, analyses: 120, popular: false },
   ];
 
   const handleCreditsBuy = async (packId: string) => {
@@ -137,7 +131,7 @@ const Pricing = () => {
         credits_120: import.meta.env.VITE_STRIPE_CREDITS_120 ?? '',
       };
       const baseUrl = linkMap[packId];
-      if (!baseUrl) { setMessage(t('pricing_error_credits_config')); return; }
+      if (!baseUrl) { setMessage('Stripe link not configured for this credit pack.'); return; }
 
       const url = new URL(baseUrl);
       const { data: { user } } = await supabase.auth.getUser();
@@ -147,7 +141,7 @@ const Pricing = () => {
       }
       window.location.href = url.toString();
     } catch {
-      setMessage(t('pricing_error_connection'));
+      setMessage('Connection error. Please try again.');
     } finally {
       setLoadingCredits(null);
     }
@@ -157,94 +151,94 @@ const Pricing = () => {
     {
       id: 'free',
       name: 'Free',
-      description: t('tier_free_desc'),
+      description: 'Start with three free brand analyses, no credit card required.',
       priceMonthly: 'Free',
       priceYearly: 'Free',
       periodMonthly: '',
       periodYearly: '',
       isPopular: false,
-      buttonLabel: t('start_for_free'),
+      buttonLabel: 'Start for free',
       features: [
-        { name: t('tier_free_feat_1'), isIncluded: true },
-        { name: t('tier_free_feat_2'), isIncluded: true },
-        { name: t('tier_free_feat_3'), isIncluded: true },
-        { name: t('tier_free_feat_4'), isIncluded: true },
-        { name: t('tier_solo_feat_3'), isIncluded: false },
-        { name: t('tier_solo_feat_5'), isIncluded: false },
-        { name: t('tier_growth_feat_4'), isIncluded: false },
+        { name: '3 free brand analyses', isIncluded: true },
+        { name: 'Overall AI Visibility Score', isIncluded: true },
+        { name: 'Perception radar (5 dimensions)', isIncluded: true },
+        { name: 'AI Verdict — actionable summary', isIncluded: true },
+        { name: 'Sentiment trend (30 days)', isIncluded: false },
+        { name: 'Brand knowledge context (RAG)', isIncluded: false },
+        { name: 'Competitor comparison', isIncluded: false },
       ],
     },
     {
       id: 'solo',
       name: 'Solo',
-      description: t('tier_solo_desc'),
+      description: 'For indie founders and solo marketers tracking their brand.',
       priceMonthly: prices.solo_monthly,
       priceYearly: prices.solo_yearly,
       periodMonthly: period_month,
       periodYearly: period_year,
       isPopular: false,
-      buttonLabel: t('get_started'),
+      buttonLabel: 'Get started',
       features: [
-        { name: t('tier_solo_feat_1'), isIncluded: true },
-        { name: t('tier_solo_feat_2'), isIncluded: true },
-        { name: t('tier_solo_feat_3'), isIncluded: true },
-        { name: t('tier_solo_feat_4'), isIncluded: true },
-        { name: t('tier_solo_feat_5'), isIncluded: true },
-        { name: t('tier_solo_feat_6'), isIncluded: true },
-        { name: t('tier_growth_feat_4'), isIncluded: false },
+        { name: '10 brand analyses per month', isIncluded: true },
+        { name: '3 LLM sources (GPT-4o, Claude, Gemini)', isIncluded: true },
+        { name: 'Sentiment trend (30 days)', isIncluded: true },
+        { name: 'Source breakdown chart', isIncluded: true },
+        { name: 'Brand knowledge context (RAG)', isIncluded: true },
+        { name: 'CSV export', isIncluded: true },
+        { name: 'Competitor comparison', isIncluded: false },
       ],
     },
     {
       id: 'growth',
       name: 'Growth',
-      description: t('tier_growth_desc'),
+      description: 'For growing teams who need deeper competitive insights.',
       priceMonthly: prices.growth_monthly,
       priceYearly: prices.growth_yearly,
       periodMonthly: period_month,
       periodYearly: period_year,
       isPopular: true,
-      buttonLabel: t('get_started'),
+      buttonLabel: 'Get started',
       features: [
-        { name: t('tier_growth_feat_1'), isIncluded: true },
-        { name: t('tier_growth_feat_2'), isIncluded: true },
-        { name: t('tier_growth_feat_3'), isIncluded: true },
-        { name: t('tier_growth_feat_4'), isIncluded: true },
-        { name: t('tier_growth_feat_5'), isIncluded: true },
-        { name: t('tier_growth_feat_6'), isIncluded: true },
-        { name: t('tier_growth_feat_7'), isIncluded: true },
+        { name: '50 brand analyses per month', isIncluded: true },
+        { name: 'All 6 LLM sources + Perplexity', isIncluded: true },
+        { name: 'Full source table with confidence', isIncluded: true },
+        { name: 'Competitor comparison', isIncluded: true },
+        { name: '1-year history & weekly digest', isIncluded: true },
+        { name: 'API access', isIncluded: true },
+        { name: 'Priority email support', isIncluded: true },
       ],
     },
     {
       id: 'enterprise',
       name: 'Enterprise Suite',
-      description: t('tier_ent_desc'),
-      priceMonthly: t('tier_ent_price'),
-      priceYearly: t('tier_ent_price'),
+      description: 'For enterprises requiring full AI visibility control.',
+      priceMonthly: 'Custom pricing',
+      priceYearly: 'Custom pricing',
       periodMonthly: '',
       periodYearly: '',
       isPopular: false,
-      buttonLabel: t('contact_sales'),
+      buttonLabel: 'Contact Sales',
       features: [
-        { name: t('tier_ent_feat_1'), isIncluded: true },
-        { name: t('tier_ent_feat_2'), isIncluded: true },
-        { name: t('tier_ent_feat_3'), isIncluded: true },
-        { name: t('tier_ent_feat_4'), isIncluded: true },
-        { name: t('tier_ent_feat_5'), isIncluded: true },
-        { name: t('tier_ent_feat_6'), isIncluded: true },
-        { name: t('tier_ent_feat_7'), isIncluded: true },
-        { name: t('tier_ent_feat_8'), isIncluded: true },
+        { name: 'Unlimited analyses', isIncluded: true },
+        { name: 'Custom LLM sources + private models', isIncluded: true },
+        { name: 'Real-time monitoring & alerts', isIncluded: true },
+        { name: 'Unlimited history + webhooks', isIncluded: true },
+        { name: 'Slack & Teams integration', isIncluded: true },
+        { name: 'Dedicated account manager', isIncluded: true },
+        { name: 'White-label dashboard', isIncluded: true },
+        { name: 'SLA guarantee (99.9%)', isIncluded: true },
       ],
     },
   ];
 
   const faqItems = [
-    { q: t('pricing_faq_q_cancel'),   a: t('pricing_faq_a_cancel')   },
-    { q: t('pricing_faq_q_overage'),  a: t('pricing_faq_a_overage')  },
-    { q: t('pricing_faq_q_switch'),   a: t('pricing_faq_a_switch')   },
-    { q: t('pricing_faq_q_vat'),      a: t('pricing_faq_a_vat')      },
-    { q: t('pricing_faq_q_data'),     a: t('pricing_faq_a_data')     },
-    { q: t('pricing_faq_q_midcycle'), a: t('pricing_faq_a_midcycle') },
-    { q: t('pricing_faq_q_support'),  a: t('pricing_faq_a_support')  },
+    { q: 'Can I cancel anytime?',             a: 'Yes — cancel at any time and keep access until the end of your billing period.' },
+    { q: 'What happens if I exceed my limit?', a: 'If you hit your plan limit, you can upgrade instantly or purchase additional analysis credits.' },
+    { q: 'Can I change plans later?',          a: 'Absolutely — switch plans anytime without losing your existing data.' },
+    { q: 'Will I receive a VAT invoice?',      a: 'Yes — all payments go through Stripe, which automatically generates VAT-compliant invoices sent to your email. For EU companies, enter your VAT number in the Stripe checkout to receive a B2B invoice.' },
+    { q: 'How do you handle my company data?', a: 'Any brand context you upload stays in your private workspace. We never train AI models on your data, never share it with third parties beyond the AI providers needed to run each analysis, and we are fully GDPR compliant.' },
+    { q: 'Can I change plans mid-billing cycle?', a: 'Yes — upgrade takes effect immediately and is prorated. Downgrading applies at the end of the current billing period so you always get what you paid for.' },
+    { q: 'Need help choosing a plan?',         a: 'Our team is available by email to recommend the best option for your brand.' },
   ];
 
   return (
@@ -257,26 +251,30 @@ const Pricing = () => {
               <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center shrink-0">
                 <AlertTriangle className="w-5 h-5 text-yellow-500" />
               </div>
-              <DialogTitle>{t('pricing_downgrade_title')}</DialogTitle>
+              <DialogTitle>Switch to Free plan</DialogTitle>
             </div>
             <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-              {t('pricing_downgrade_desc')}
+              Are you sure you want to switch to the Free plan?
               <ul className="mt-3 space-y-1.5 text-sm">
-                {['pricing_downgrade_bullet1', 'pricing_downgrade_bullet2', 'pricing_downgrade_bullet3'].map(k => (
-                  <li key={k} className="flex items-start gap-2">
-                    <span className="text-yellow-500 mt-0.5">*</span> {t(k)}
+                {[
+                  'You will lose access to advanced LLM sources (Claude, Gemini and more)',
+                  'Your limit will drop to 3 analyses per month',
+                  'Analysis history and CSV export will be disabled',
+                ].map(bullet => (
+                  <li key={bullet} className="flex items-start gap-2">
+                    <span className="text-yellow-500 mt-0.5">*</span> {bullet}
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-muted-foreground/70">{t('pricing_downgrade_note')}</p>
+              <p className="mt-3 text-xs text-muted-foreground/70">Your subscription will be cancelled via Stripe — access continues until the end of the current billing period.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 mt-2">
             <Button variant="outline" className="flex-1" onClick={() => setShowDowngradeDialog(false)}>
-              {t('pricing_downgrade_stay')}
+              Stay on current plan
             </Button>
             <Button variant="destructive" className="flex-1" onClick={confirmDowngrade}>
-              {t('pricing_downgrade_confirm')}
+              Yes, switch to Free
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -290,10 +288,10 @@ const Pricing = () => {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-            {t('pricing_title')}
+            Simple, transparent pricing
           </h1>
           <p className="text-muted-foreground text-sm max-w-lg mx-auto">
-            {t('pricing_subtitle')}
+            Start free, scale as your brand monitoring needs grow. No hidden fees.
           </p>
           {message && (
             <p className="mt-4 text-sm text-primary font-medium">{message}</p>
@@ -311,7 +309,7 @@ const Pricing = () => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {t(`pricing_currency_${c}`)}
+                {c === 'pln' ? '🇵🇱 PLN' : '🇺🇸 USD'}
               </button>
             ))}
           </div>
@@ -336,9 +334,9 @@ const Pricing = () => {
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-2">
               <Zap className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-display text-foreground">{t('credits_addon_title')}</h2>
+              <h2 className="text-2xl font-display text-foreground">Need more analyses?</h2>
             </div>
-            <p className="text-sm text-muted-foreground">{t('credits_addon_subtitle')}</p>
+            <p className="text-sm text-muted-foreground">Top up your account with one-time credit packs — no plan change required.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
@@ -353,13 +351,13 @@ const Pricing = () => {
               >
                 {pack.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 bg-primary text-primary-foreground rounded-full whitespace-nowrap">
-                    {t('credits_best_value')}
+                    Best value
                   </span>
                 )}
                 <div>
                   <p className="text-3xl font-display text-foreground">{pack.price}</p>
                   <p className="text-sm text-muted-foreground mt-1">{pack.label}</p>
-                  <p className="text-[11px] text-muted-foreground/60 mt-2">{t('credits_one_time')}</p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-2">One-time credit top-up</p>
                 </div>
                 <Button
                   onClick={() => handleCreditsBuy(pack.id)}
@@ -367,7 +365,7 @@ const Pricing = () => {
                   variant={pack.popular ? 'default' : 'outline'}
                   className="w-full"
                 >
-                  {loadingCredits === pack.id ? t('pricing_loading_credits') : t('credits_buy')}
+                  {loadingCredits === pack.id ? 'Loading...' : 'Buy pack'}
                 </Button>
               </div>
             ))}
@@ -378,13 +376,13 @@ const Pricing = () => {
         <div className="mt-16 space-y-10">
           <div className="rounded-3xl border border-slate-900/10 bg-slate-950/60 p-8 text-center">
             <p className="text-sm uppercase tracking-[0.35em] text-primary mb-3">
-              {t('pricing_social_proof_heading')}
+              Trusted by
             </p>
             <h2 className="text-2xl font-display text-foreground max-w-2xl mx-auto">
-              {t('pricing_social_proof')}
+              Join 200+ brands already monitoring AI visibility.
             </h2>
             <p className="mt-4 text-sm text-muted-foreground max-w-2xl mx-auto">
-              {t('pricing_social_proof_subtitle')}
+              Trusted brand teams use BitBrew to stay ahead of AI-driven reputation and search shifts.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6">
               {SOCIAL_PROOF_BRANDS.map((name) => (
@@ -397,7 +395,7 @@ const Pricing = () => {
 
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-foreground">
-              {t('pricing_faq_heading')}
+              Frequently Asked Questions
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
               {faqItems.map((item) => (

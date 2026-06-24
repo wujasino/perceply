@@ -3,8 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Cookie, Shield, Info, X, ChevronDown, ChevronUp, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/locale";
-
 type Prefs = {
   necessary: boolean;
   functional: boolean;
@@ -24,12 +22,11 @@ interface CookiePanelProps {
 }
 
 const CookiePanel = (props: CookiePanelProps) => {
-  const { t } = useTranslation();
   const {
-    title = t("cookie_title"),
-    message = t("cookie_message"),
-    acceptText = t("cookie_accept"),
-    customizeText = t("cookie_customize"),
+    title = "This site uses cookies",
+    message = "We use cookies to enhance your experience, analyze traffic and personalize content.",
+    acceptText = "Accept all",
+    customizeText = "Customize",
     icon = "cookie",
     className,
     privacyHref = "/privacy",
@@ -128,7 +125,7 @@ const CookiePanel = (props: CookiePanelProps) => {
 
       <div className="flex-1">
         <div className="text-xs font-medium">
-          {title} {locked && <span className="text-[10px] text-muted-foreground">({t("cookie_required")})</span>}
+          {title} {locked && <span className="text-[10px] text-muted-foreground">(required)</span>}
         </div>
 
         <p className="text-[10px] text-muted-foreground mt-0.5">{desc}</p>
@@ -168,26 +165,26 @@ const CookiePanel = (props: CookiePanelProps) => {
             type="button"
             onClick={() => closeWithExit()}
             className="ml-auto inline-flex size-8 items-center justify-center rounded-md hover:bg-foreground/5 cursor-pointer"
-            aria-label={t("cookie_close")}
+            aria-label="Close"
           >
             <X className="size-4 text-muted-foreground" />
           </button>
         </div>
 
         <p className="text-xs leading-5 text-muted-foreground">
-          {message} {t("cookie_see_our")}{" "}
+          {message} See our{" "}
           <a
             href={privacyHref}
             className="underline underline-offset-4 hover:text-foreground cursor-pointer"
           >
-            {t("cookie_privacy")}
+            Privacy Policy
           </a>{" "}
-          {t("cookie_and")}{" "}
+          and{" "}
           <a
             href={termsHref}
             className="underline underline-offset-4 hover:text-foreground cursor-pointer"
           >
-            {t("cookie_terms")}
+            Terms & Conditions
           </a>
           .
         </p>
@@ -236,27 +233,27 @@ const CookiePanel = (props: CookiePanelProps) => {
           {showPrefs && (
             <div className="mt-2 flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
               <PrefRow
-                title={t("cookie_necessary_title")}
-                desc={t("cookie_necessary_desc")}
+                title="Strictly necessary"
+                desc="Required for site functionality."
                 field="necessary"
                 locked
               />
 
               <PrefRow
-                title={t("cookie_functional_title")}
-                desc={t("cookie_functional_desc")}
+                title="Functional"
+                desc="Remembers your preferences."
                 field="functional"
               />
 
               <PrefRow
-                title={t("cookie_analytics_title")}
-                desc={t("cookie_analytics_desc")}
+                title="Analytics"
+                desc="Helps us improve the site."
                 field="analytics"
               />
 
               <PrefRow
-                title={t("cookie_marketing_title")}
-                desc={t("cookie_marketing_desc")}
+                title="Marketing"
+                desc="Personalized ads."
                 field="marketing"
               />
 
@@ -266,7 +263,7 @@ const CookiePanel = (props: CookiePanelProps) => {
                   onClick={() => setShowPrefs(false)}
                   className="px-2.5 py-1 rounded-md border border-border bg-muted text-muted-foreground text-xs hover:bg-muted/80 cursor-pointer"
                 >
-                  {t("cookie_cancel")}
+                  Cancel
                 </button>
 
                 <button
@@ -274,7 +271,7 @@ const CookiePanel = (props: CookiePanelProps) => {
                   onClick={savePreferences}
                   className="px-2.5 py-1 rounded-md bg-primary text-primary-foreground text-xs hover:bg-primary/90 cursor-pointer"
                 >
-                  {t("cookie_save")}
+                  Save preferences
                 </button>
               </div>
             </div>
