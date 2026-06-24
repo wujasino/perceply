@@ -6,8 +6,6 @@ const fireConfetti = () =>
   import('canvas-confetti').then(({ default: confetti }) =>
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
   );
-import { useTranslation } from "@/lib/locale";
-
 export interface NewsletterSignupProps {
   onSubmit: (email: string) => Promise<void>;
   className?: string;
@@ -17,7 +15,6 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
   onSubmit,
   className = "",
 }) => {
-  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,13 +25,13 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
     setError("");
 
     if (!email) {
-      setError(t("newsletter_error_required"));
+      setError("Email is required");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError(t("newsletter_error_invalid"));
+      setError("Please enter a valid email address");
       return;
     }
 
@@ -45,7 +42,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
       setIsSubmitted(true);
       fireConfetti();
     } catch {
-      setError(t("newsletter_error_generic"));
+      setError("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -72,7 +69,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                {t("newsletter_title")}
+                Subscribe to our newsletter
               </motion.h2>
               <motion.p
                 className="text-muted-foreground text-sm"
@@ -80,7 +77,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ delay: 0.4 }}
               >
-                {t("newsletter_subtitle")}
+                Stay up to date with our latest news and updates.
               </motion.p>
             </div>
             <div className="space-y-2">
@@ -91,7 +88,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
                 className="font-medium text-sm text-foreground"
                 htmlFor="newsletter-email"
               >
-                {t("newsletter_email_label")}
+                Email address
               </motion.label>
               <motion.div
                 className="flex flex-col gap-2 sm:flex-row"
@@ -102,7 +99,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
                 <input
                   type="email"
                   id="newsletter-email"
-                  placeholder={t("newsletter_email_placeholder")}
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -113,7 +110,7 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Send className="h-4 w-4" />
-                  <span>{t("newsletter_button")}</span>
+                  <span>Subscribe</span>
                 </button>
               </motion.div>
             </div>
@@ -139,10 +136,10 @@ export const NewsletterSignup: React.FC<NewsletterSignupProps> = ({
             className="text-center"
           >
             <h2 className="text-2xl font-bold text-foreground mb-2">
-              {t("newsletter_success_title")}
+              Thank you for subscribing!
             </h2>
             <p className="text-muted-foreground">
-              {t("newsletter_success_desc")}
+              We've sent a confirmation email to your inbox.
             </p>
           </motion.div>
         )}

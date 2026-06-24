@@ -11,23 +11,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useTranslation } from '@/lib/locale';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
 type Tab = 'account' | 'notifications' | 'security' | 'privacy' | 'billing';
 
-const tabs: { id: Tab; labelKey: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'account',       labelKey: 'settings_tab_account',       icon: User },
-  { id: 'notifications', labelKey: 'settings_tab_notifications', icon: Bell },
-  { id: 'security',      labelKey: 'settings_tab_security',      icon: KeyRound },
-  { id: 'privacy',       labelKey: 'settings_tab_privacy',       icon: Shield },
-  { id: 'billing',       labelKey: 'settings_tab_billing',       icon: CreditCard },
+const tabs: { id: Tab; label: string; icon: React.FC<{ className?: string }> }[] = [
+  { id: 'account',       label: 'Account',       icon: User },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'security',      label: 'Security',      icon: KeyRound },
+  { id: 'privacy',       label: 'Privacy',       icon: Shield },
+  { id: 'billing',       label: 'Billing',       icon: CreditCard },
 ];
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('account');
   const [voicePrefs, setVoicePrefs] = useState<VoicePrefs>(loadVoicePrefs);
 
@@ -128,7 +126,7 @@ export default function Settings() {
     if (storedHist) {
       try { setSubHistory(JSON.parse(storedHist)); } catch { /* noop */ }
     } else {
-      const init = [{ status: 'active' as const, label: t('sub_status_active'), timestamp: new Date().toISOString() }];
+      const init = [{ status: 'active' as const, label: 'Active', timestamp: new Date().toISOString() }];
       setSubHistory(init);
       localStorage.setItem('subscriptionHistory', JSON.stringify(init));
     }
@@ -146,13 +144,13 @@ export default function Settings() {
     paused: 'bg-amber-400 ring-amber-400/30',
     cancelled: 'bg-red-500 ring-red-500/30',
   } as const;
-  const SUB_STATUS_KEY = { active: 'sub_status_active', paused: 'sub_status_paused', cancelled: 'sub_status_cancelled' } as const;
+  const SUB_STATUS_LABEL = { active: 'Active', paused: 'Paused', cancelled: 'Cancelled' } as const;
 
   const updateSub = (status: typeof subStatus) => {
     if (status === subStatus) return;
     setSubStatus(status);
     localStorage.setItem('subscriptionStatus', status);
-    const label = t(SUB_STATUS_KEY[status]);
+    const label = SUB_STATUS_LABEL[status];
     const next = [{ status, label, timestamp: new Date().toISOString() }, ...subHistory].slice(0, 20);
     setSubHistory(next);
     localStorage.setItem('subscriptionHistory', JSON.stringify(next));
@@ -181,11 +179,11 @@ export default function Settings() {
     setUploadError(null);
 
     if (!file.type.startsWith('image/')) {
-      setUploadError(t('settings_avatar_invalid_type'));
+      setUploadError('Please choose an image file');
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      setUploadError(t('settings_avatar_too_large'));
+      setUploadError('Image must be under 2MB');
       return;
     }
 
@@ -197,7 +195,7 @@ export default function Settings() {
       const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
       const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
       if (!ALLOWED_EXTS.includes(ext)) {
-        throw new Error(t('settings_avatar_invalid_type'));
+        throw new Error('Please choose an image file');
       }
       const storagePath = `${userId}/avatar.${ext}`;
 
@@ -228,7 +226,7 @@ export default function Settings() {
           ? 'Bucket "avatars" does not exist in Supabase Storage. Run the SQL migration.'
           : err?.message?.includes('row-level security')
           ? 'No write permission. Check the RLS policies for the "avatars" bucket.'
-          : t('settings_avatar_upload_error')
+          : 'Upload failed, please try again'
       );
     } finally {
       setUploading(false);
@@ -392,7 +390,7 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-6 py-8">
-        <h1 className="text-2xl font-semibold text-foreground mb-6">{t('settings')}</h1>
+        <h1 className="text-2xl font-semibold text-foreground mb-6">Settings</h1>
         <div className="flex gap-6">
           {/* Left tab sidebar */}
           <aside className="w-48 shrink-0">
@@ -409,7 +407,7 @@ export default function Settings() {
                   )}
                 >
                   <tab.icon className="w-4 h-4 shrink-0" />
-                  {t(tab.labelKey)}
+                  {tab.label}
                 </button>
               ))}
             </nav>
@@ -443,7 +441,7 @@ export default function Settings() {
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
                         className="relative block"
-                        aria-label={t('settings_avatar_change')}
+                        aria-label="Change photo"
                       >
                         <Avatar className="h-20 w-20 ring-2 ring-primary/30">
                           <AvatarImage src={avatarUrl ?? undefined} />
@@ -460,17 +458,17 @@ export default function Settings() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{email}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {dragOver ? t('settings_avatar_drop') : t('settings_avatar_hint')}
+                        {dragOver ? 'Drop the image to upload' : 'Drag a photo here or click to upload (max 2MB)'}
                       </p>
                       <div className="mt-3 flex flex-wrap gap-2">
                         <Button type="button" size="sm" variant="outline" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
                           <Upload className="w-3.5 h-3.5 mr-1.5" />
-                          {avatarUrl ? t('settings_avatar_change') : t('settings_avatar_upload')}
+                          {avatarUrl ? 'Change photo' : 'Upload photo'}
                         </Button>
                         {avatarUrl && (
                           <Button type="button" size="sm" variant="ghost" disabled={uploading} onClick={handleAvatarRemove} className="text-muted-foreground hover:text-destructive">
                             <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                            {t('settings_avatar_remove')}
+                            Remove
                           </Button>
                         )}
                       </div>
@@ -494,19 +492,19 @@ export default function Settings() {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-foreground block mb-1.5">{t('settings_display_name')}</label>
-                      <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t('settings_display_name_placeholder')} />
+                      <label className="text-sm font-medium text-foreground block mb-1.5">Display name</label>
+                      <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" />
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-foreground block mb-1.5">{t('email')}</label>
+                      <label className="text-sm font-medium text-foreground block mb-1.5">Email</label>
                       <Input value={email} disabled className="opacity-60" />
-                      <p className="text-xs text-muted-foreground mt-1">{t('settings_email_hint')}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Email cannot be changed here</p>
                     </div>
                   </div>
 
                   <Button onClick={handleSave} disabled={saving} size="sm">
-                    {saved ? '✓ Saved' : saving ? t('settings_saving') : (
-                      <><Save className="w-3.5 h-3.5 mr-1.5" />{t('settings_save')}</>
+                    {saved ? '✓ Saved' : saving ? 'Saving…' : (
+                      <><Save className="w-3.5 h-3.5 mr-1.5" />Save changes</>
                     )}
                   </Button>
 
@@ -641,9 +639,9 @@ export default function Settings() {
               {activeTab === 'notifications' && (
                 <div className="space-y-4">
                   {[
-                    { label: t('settings_notif_brew'), desc: t('settings_notif_brew_desc'), value: notifBrewComplete, set: setNotifBrewComplete },
-                    { label: t('settings_notif_newsletter'), desc: t('settings_notif_newsletter_desc'), value: notifNewsletter, set: setNotifNewsletter },
-                    { label: t('settings_notif_marketing'), desc: t('settings_notif_marketing_desc'), value: notifMarketing, set: setNotifMarketing },
+                    { label: 'Brew complete', desc: 'Get notified when your brand analysis is ready', value: notifBrewComplete, set: setNotifBrewComplete },
+                    { label: 'Newsletter', desc: 'Receive our weekly digest', value: notifNewsletter, set: setNotifNewsletter },
+                    { label: 'Product updates', desc: 'News about new features and offers', value: notifMarketing, set: setNotifMarketing },
                   ].map((item) => (
                     <div key={item.label} className="flex items-start justify-between gap-4 p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20">
                       <div>
@@ -671,7 +669,7 @@ export default function Settings() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-foreground">Two-factor authentication (2FA)</p>
-                        <p className="text-xs text-muted-foreground">Google Authenticator, Authy i inne</p>
+                        <p className="text-xs text-muted-foreground">Google Authenticator, Authy and others</p>
                       </div>
                     </div>
                     <TotpSetup />
@@ -817,7 +815,7 @@ export default function Settings() {
 
                     {emailStep === 'input' && (
                       <form onSubmit={handleChangeEmail} className="space-y-3">
-                        <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="nowy@email.pl" autoComplete="email" className="h-10" autoFocus />
+                        <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="new@email.com" autoComplete="email" className="h-10" autoFocus />
                         <div className="flex gap-2">
                           <Button type="button" size="sm" variant="ghost" onClick={() => { setEmailStep('idle'); setEmailError(''); }}>
                             <ArrowLeft className="w-3.5 h-3.5" />
@@ -843,20 +841,20 @@ export default function Settings() {
               {/* PRIVACY */}
               {activeTab === 'privacy' && (
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">{t('settings_privacy_desc')}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">We respect your data. Read our policies below.</p>
                   <div className="flex flex-col gap-2">
-                    <a href="/polityka-prywatnosci" target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-                      <Shield className="w-4 h-4" /> {t('privacy')}
+                    <a href="/privacy" target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                      <Shield className="w-4 h-4" /> Privacy Policy
                     </a>
-                    <a href="/regulamin" target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
-                      <Shield className="w-4 h-4" /> {t('terms')}
+                    <a href="/terms" target="_blank" className="inline-flex items-center gap-2 text-sm text-primary hover:underline">
+                      <Shield className="w-4 h-4" /> Terms of Service
                     </a>
                   </div>
                   <div className="h-px bg-border" />
                   <div className="p-4 rounded-xl border border-[hsl(var(--glass-border))] bg-muted/20">
-                    <p className="text-sm font-medium text-foreground mb-1">{t('settings_data_export')}</p>
-                    <p className="text-xs text-muted-foreground mb-3">{t('settings_data_export_desc')}</p>
-                    <Button variant="outline" size="sm">{t('settings_data_export_btn')}</Button>
+                    <p className="text-sm font-medium text-foreground mb-1">Export your data</p>
+                    <p className="text-xs text-muted-foreground mb-3">Download all your brand analyses as JSON</p>
+                    <Button variant="outline" size="sm" onClick={handleDataExport}>Export data</Button>
                   </div>
                 </div>
               )}
@@ -868,31 +866,31 @@ export default function Settings() {
                     <div className="flex items-center gap-3">
                       <span className={`inline-flex h-2.5 w-2.5 rounded-full ring-2 ${SUB_DOT[subStatus]} animate-pulse`} />
                       <div>
-                        <p className="text-sm font-medium text-foreground">{t(SUB_STATUS_KEY[subStatus])}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{t('settings_billing_manage_desc')}</p>
+                        <p className="text-sm font-medium text-foreground">{SUB_STATUS_LABEL[subStatus]}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Pause or cancel anytime — no contracts.</p>
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
                       {subStatus === 'active' && (
                         <>
-                          <Button size="sm" variant="outline" onClick={() => updateSub('paused')}>{t('settings_billing_pause')}</Button>
-                          <Button size="sm" variant="outline" onClick={() => updateSub('cancelled')}>{t('settings_billing_cancel')}</Button>
+                          <Button size="sm" variant="outline" onClick={() => updateSub('paused')}>Pause</Button>
+                          <Button size="sm" variant="outline" onClick={() => updateSub('cancelled')}>Cancel</Button>
                         </>
                       )}
                       {subStatus === 'paused' && (
                         <>
-                          <Button size="sm" onClick={() => updateSub('active')}>{t('settings_billing_resume')}</Button>
-                          <Button size="sm" variant="outline" onClick={() => updateSub('cancelled')}>{t('settings_billing_cancel')}</Button>
+                          <Button size="sm" onClick={() => updateSub('active')}>Resume</Button>
+                          <Button size="sm" variant="outline" onClick={() => updateSub('cancelled')}>Cancel</Button>
                         </>
                       )}
                       {subStatus === 'cancelled' && (
-                        <Button size="sm" onClick={() => updateSub('active')}>{t('settings_billing_resume')}</Button>
+                        <Button size="sm" onClick={() => updateSub('active')}>Resume</Button>
                       )}
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground font-semibold">{t('settings_billing_history')}</p>
+                    <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground font-semibold">Billing history</p>
                     <div className="flex items-center gap-2">
                       <select
                         value={exportFormat}
@@ -903,13 +901,13 @@ export default function Settings() {
                         <option value="json">JSON</option>
                       </select>
                       <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={downloadHistory}>
-                        <Download className="w-3 h-3" /> {t('settings_billing_download')}
+                        <Download className="w-3 h-3" /> Download
                       </Button>
                     </div>
                   </div>
 
                   {subHistory.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">{t('settings_billing_no_history')}</p>
+                    <p className="text-sm text-muted-foreground">No history yet.</p>
                   ) : (
                     <div className="space-y-2">
                       {subHistory.map((item, i) => (
@@ -919,7 +917,7 @@ export default function Settings() {
                             <span className="font-medium text-foreground truncate">{item.label}</span>
                           </div>
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{t(SUB_STATUS_KEY[item.status])}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{SUB_STATUS_LABEL[item.status]}</span>
                             <span className="text-xs text-muted-foreground">
                               {new Date(item.timestamp).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>

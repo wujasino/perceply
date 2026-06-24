@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { LogOut, User, Settings, Code2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { useTranslation } from '../../lib/locale';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,11 +18,11 @@ import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 
 const authedLinks = [
-  { to: '/dashboard', key: 'dashboard' },
+  { to: '/dashboard', label: 'Dashboard' },
 ];
 
 const publicLinks = [
-  { to: '/dashboard', key: 'dashboard' },
+  { to: '/dashboard', label: 'Dashboard' },
 ];
 
 export const Navbar = () => {
@@ -38,8 +37,6 @@ export const Navbar = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
-  const { t } = useTranslation();
-
   const handleLogout = async () => {
     setAvatarOpen(false);
     try {
@@ -156,7 +153,7 @@ export const Navbar = () => {
                           : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                       }`}
                     >
-                      {t(link.key)}
+                      {link.label}
                     </Link>
                   ))}
                   <div className="my-1 h-px bg-border" />
@@ -167,7 +164,7 @@ export const Navbar = () => {
                         className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-left text-muted-foreground hover:text-foreground hover:bg-accent"
                       >
                         <LogOut className="w-4 h-4" />
-                        {t('logout')}
+                        Sign out
                       </button>
                     ) : (
                       <>
@@ -176,14 +173,14 @@ export const Navbar = () => {
                           onClick={() => setMobileOpen(false)}
                           className="px-3 py-2 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent"
                         >
-                          {t('login')}
+                          Sign in
                         </Link>
                         <Link
                           to="/register"
                           onClick={() => setMobileOpen(false)}
                           className="px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 text-center"
                         >
-                          {t('register')}
+                          Sign up
                         </Link>
                       </>
                     )
@@ -247,7 +244,7 @@ export const Navbar = () => {
                             : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                         }`}
                       >
-                        {t(link.key)}
+                        {link.label}
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
@@ -271,10 +268,10 @@ export const Navbar = () => {
               ) : (
                 <div className="hidden md:flex items-center gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/login">{t('login')}</Link>
+                    <Link to="/login">Sign in</Link>
                   </Button>
                   <Button size="sm" asChild>
-                    <Link to="/register">{t('register')}</Link>
+                    <Link to="/register">Sign up</Link>
                   </Button>
                 </div>
               )}
