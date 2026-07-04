@@ -24,6 +24,16 @@ const USD = {
   credits_120: '$39',
 };
 
+const EUR = {
+  solo_monthly: '€27',
+  solo_yearly: '€259',
+  growth_monthly: '€75',
+  growth_yearly: '€695',
+  credits_20: '€8',
+  credits_50: '€18',
+  credits_120: '€36',
+};
+
 const PLN = {
   solo_monthly: '99 zł',
   solo_yearly: '950 zł',
@@ -41,13 +51,22 @@ const Pricing = () => {
   const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [currency, setCurrency] = useState<'pln' | 'usd'>('usd');
+  const [currency, setCurrency] = useState<'pln' | 'usd' | 'eur'>('usd');
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
-  const prices = currency === 'pln' ? PLN : USD;
+  const prices = currency === 'pln' ? PLN : currency === 'eur' ? EUR : USD;
   const period_month = '/mo';
   const period_year  = '/yr';
+
+  // Auto-detect currency from browser locale (manual toggle still overrides)
+  useEffect(() => {
+    const lang = (navigator.language || '').toLowerCase();
+    const eurozone = ['de', 'fr', 'es', 'it', 'nl', 'pt', 'fi', 'ie', 'at', 'be', 'gr', 'sk', 'si', 'lv', 'lt', 'ee', 'lu', 'mt', 'cy', 'hr'];
+    if (lang.startsWith('pl')) setCurrency('pln');
+    else if (eurozone.some(code => lang.startsWith(code))) setCurrency('eur');
+    else setCurrency('usd');
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
@@ -299,7 +318,7 @@ const Pricing = () => {
 
           {/* Currency toggle */}
           <div className="flex items-center justify-center mt-6 gap-1 p-1 rounded-lg border border-[hsl(var(--glass-border))] bg-muted/40 w-fit mx-auto">
-            {(['pln', 'usd'] as const).map(c => (
+            {(['pln', 'usd', 'eur'] as const).map(c => (
               <button
                 key={c}
                 onClick={() => setCurrency(c)}
@@ -309,7 +328,7 @@ const Pricing = () => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {c === 'pln' ? '🇵🇱 PLN' : '🇺🇸 USD'}
+                {c === 'pln' ? '🇵🇱 PLN' : c === 'usd' ? '🇺🇸 USD' : '🇪🇺 EUR'}
               </button>
             ))}
           </div>

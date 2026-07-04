@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight } from 'lucide-react';
+import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight, Bot, Globe, Repeat } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -500,6 +500,46 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Global standards strip ────────────────────────────────── */}
+      <section className="py-16 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                icon: Globe,
+                title: 'GEO-first approach',
+                desc: 'Built around Generative Engine Optimization — the emerging standard for AI-era brand visibility.',
+              },
+              {
+                icon: Bot,
+                title: '3 leading AI models',
+                desc: 'Coverage across ChatGPT, Claude and Gemini — the assistants your customers ask for recommendations.',
+              },
+              {
+                icon: Repeat,
+                title: 'Track over time',
+                desc: 'Repeatable monthly audits show whether your optimization work actually moves the needle.',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="glass-card p-6 flex flex-col gap-3"
+              >
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Comparison table ──────────────────────────────────────── */}
       <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
         <div className="max-w-5xl mx-auto">
@@ -700,6 +740,68 @@ const Landing = () => {
           >
             <ContactForm />
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── Methodology ───────────────────────────────────────────── */}
+      <section id="methodology" className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Methodology
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              How BitBrew measures AI visibility
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Transparent, reproducible measurement — so every score can be traced back to real AI responses.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                icon: Bot,
+                title: 'Multi-model querying',
+                desc: 'We query ChatGPT, Claude and Gemini through their official APIs with category-level prompts your customers actually ask.',
+              },
+              {
+                icon: BarChart3,
+                title: 'AI Share of Voice',
+                desc: 'We measure how often your brand appears in AI answers versus competitors — mention rate, ranking position and recommendation strength.',
+              },
+              {
+                icon: Eye,
+                title: 'Sentiment & context analysis',
+                desc: 'Every mention is scored for sentiment and factual accuracy, so you know not just if AI talks about you, but how.',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Score 0–100',
+                desc: 'All signals combine into a single visibility score you can track over time and benchmark against your category.',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="glass-card p-6 flex flex-col gap-3"
+              >
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 
