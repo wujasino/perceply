@@ -44,8 +44,6 @@ const PLN = {
   credits_120: '169 zł',
 };
 
-const SOCIAL_PROOF_BRANDS = ['Shopify Plus', 'Brainly', 'Booksy', 'inPost', 'Tidio', 'Packhelp'];
-
 const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
@@ -393,21 +391,23 @@ const Pricing = () => {
 
         {/* Social proof + FAQ */}
         <div className="mt-16 space-y-10">
-          <div className="rounded-3xl border border-slate-900/10 bg-slate-950/60 p-8 text-center">
+          <div className="rounded-3xl border border-[hsl(var(--glass-border))] bg-card/60 p-8 text-center">
             <p className="text-sm uppercase tracking-[0.35em] text-primary mb-3">
-              Trusted by
+              Built for the AI era
             </p>
             <h2 className="text-2xl font-display text-foreground max-w-2xl mx-auto">
-              Join 200+ brands already monitoring AI visibility.
+              Stay ahead of AI-driven reputation and search shifts.
             </h2>
-            <p className="mt-4 text-sm text-muted-foreground max-w-2xl mx-auto">
-              Trusted brand teams use BitBrew to stay ahead of AI-driven reputation and search shifts.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6">
-              {SOCIAL_PROOF_BRANDS.map((name) => (
-                <span key={name} className="text-sm font-medium text-muted-foreground/40 select-none">
-                  {name}
-                </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 text-left">
+              {[
+                { title: 'GEO-first approach', desc: 'Built around Generative Engine Optimization — the emerging standard for AI-era brand visibility.' },
+                { title: '3 leading AI models', desc: 'Coverage across ChatGPT, Claude and Gemini — the assistants your customers ask for recommendations.' },
+                { title: 'Track over time', desc: 'Repeatable monthly audits show whether your optimization work actually moves the needle.' },
+              ].map(item => (
+                <div key={item.title} className="rounded-2xl border border-[hsl(var(--glass-border))] bg-background/60 p-5">
+                  <p className="text-sm font-semibold text-foreground mb-1.5">{item.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
               ))}
             </div>
           </div>
