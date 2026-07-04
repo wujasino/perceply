@@ -1,6 +1,6 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Zap, LogOut, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot, PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
+import { LogOut, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot, PanelLeftClose, PanelLeftOpen, Menu, Crown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -130,10 +130,11 @@ export const AppNavbar = ({ collapsed = false, onToggle, onMobileToggle, chatOpe
       {plan === 'Free' && (
         <Link
           to="/pricing"
-          className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors shrink-0"
+          title="Upgrade plan"
+          className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg border border-primary/30 text-primary text-xs font-medium hover:bg-primary/10 transition-colors shrink-0"
         >
-          <Zap className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Upgrade plan</span>
+          <Crown className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Upgrade</span>
         </Link>
       )}
 

@@ -155,7 +155,7 @@ export default function Onboarding() {
                     <Input
                       value={brand}
                       onChange={e => setBrand(e.target.value)}
-                      placeholder="np. BitBrew, Nike, Notion..."
+                      placeholder="e.g. BitBrew, Nike, Notion..."
                       className="h-12 text-base"
                       autoFocus
                       maxLength={80}

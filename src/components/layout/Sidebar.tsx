@@ -32,7 +32,7 @@ const NavItem = ({ to, icon: Icon, label, badge, active, collapsed, onNavigate }
     <Icon className="w-4 h-4 shrink-0" />
     {!collapsed && <span className="flex-1">{label}</span>}
     {!collapsed && badge && (
-      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-primary text-primary-foreground">
         {badge}
       </span>
     )}
@@ -107,7 +107,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
               <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
               <span className="text-xs font-medium text-foreground flex-1">BitBrew</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold">{plan}</span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-primary text-primary-foreground font-bold">{plan}</span>
             </div>
           </div>
         )}

@@ -402,7 +402,7 @@ const Dashboard = () => {
   if (isIdle) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex justify-center px-4 pt-16 sm:pt-24">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -428,7 +428,7 @@ const Dashboard = () => {
                   autoFocus
                   value={inputValue}
                   onChange={(e) => { setInputValue(e.target.value); setModerationError(''); }}
-                  placeholder="np. Apple, Tesla, Nike…"
+                  placeholder="e.g. Apple, Tesla, Nike…"
                   className="w-full bg-card/40 backdrop-blur-xl border border-[hsl(var(--glass-border))] text-foreground placeholder:text-muted-foreground text-base rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-primary/40 transition-colors"
                 />
               </div>
@@ -443,6 +443,33 @@ const Dashboard = () => {
             {moderationError && (
               <p className="text-xs text-destructive mt-2 text-left">{moderationError}</p>
             )}
+
+            {/* Quick suggestions — one click starts a sample analysis */}
+            {!inputValue.trim() && (
+              <div className="mt-6">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-3">
+                  Or try a popular brand
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {['Coca-Cola', 'Tesla', 'Nike'].map(brand => (
+                    <button
+                      key={brand}
+                      type="button"
+                      onClick={() => {
+                        setInputValue(brand);
+                        setSearchParams({ brand });
+                        startBrewing(brand);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[hsl(var(--glass-border))] bg-card/60 text-sm text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {inputValue.trim().length > 1 && (
               <div className="mt-6 text-left">
                 <BrandKnowledgeForm brandName={inputValue} />
