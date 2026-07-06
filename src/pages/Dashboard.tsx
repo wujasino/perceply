@@ -342,7 +342,7 @@ const Dashboard = () => {
   const [copiedEmbed, setCopiedEmbed] = useState(false);
   const badgeBrand = result?.brandName || brandFromUrl || 'Your Brand';
   const badgeSrc = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.bitbrew.pl'}/.netlify/functions/badge?brand=${encodeURIComponent(badgeBrand)}`;
-  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="BitBrew AI Visibility" height="36" /></a>`;
+  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="Perceply AI Visibility" height="36" /></a>`;
   const copyEmbed = async () => {
     try {
       await navigator.clipboard.writeText(embedCode);
@@ -721,7 +721,7 @@ const Dashboard = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mb-4">{t('embed_desc')}</p>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <img src={badgeSrc} alt="BitBrew AI Visibility badge" height={36} className="h-9 shrink-0" />
+                    <img src={badgeSrc} alt="Perceply AI Visibility badge" height={36} className="h-9 shrink-0" />
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <code className="flex-1 text-[11px] text-muted-foreground bg-background border border-input rounded-lg px-3 py-2 truncate font-data">
                         {embedCode}

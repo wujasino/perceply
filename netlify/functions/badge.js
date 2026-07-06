@@ -60,7 +60,7 @@ export const handler = async (event) => {
   const scoreW = 54;
   const totalW = labelW + scoreW;
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="36" role="img" aria-label="BitBrew AI Visibility: ${score} of 100">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="36" role="img" aria-label="Perceply AI Visibility: ${score} of 100">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#1c1c1f"/>

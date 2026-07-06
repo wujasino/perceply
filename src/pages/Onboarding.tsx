@@ -73,7 +73,7 @@ export default function Onboarding() {
 
         {/* Logo */}
         <div className="flex justify-center mb-10">
-          <img src="/landing-page-logo.png" alt="BitBrew" className="h-8" />
+          <img src="/landing-page-logo.png" alt="Perceply" className="h-8" />
         </div>
 
         {/* Progress bar */}
@@ -116,7 +116,7 @@ export default function Onboarding() {
                 <>
                   <div className="space-y-2">
                     <span className="text-3xl">👋</span>
-                    <h1 className="text-2xl font-display text-foreground">Welcome to BitBrew!</h1>
+                    <h1 className="text-2xl font-display text-foreground">Welcome to Perceply!</h1>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       It'll take less than a minute. We'll help you set up monitoring of your brand's visibility in AI — ChatGPT, Claude and Gemini.
                     </p>
@@ -155,7 +155,7 @@ export default function Onboarding() {
                     <Input
                       value={brand}
                       onChange={e => setBrand(e.target.value)}
-                      placeholder="e.g. BitBrew, Nike, Notion..."
+                      placeholder="e.g. Perceply, Nike, Notion..."
                       className="h-12 text-base"
                       autoFocus
                       maxLength={80}
@@ -262,7 +262,7 @@ export default function Onboarding() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground/40 mt-6">
-          BitBrew · <button className="hover:underline" onClick={() => navigate('/dashboard', { replace: true })}>Skip onboarding</button>
+          Perceply · <button className="hover:underline" onClick={() => navigate('/dashboard', { replace: true })}>Skip onboarding</button>
         </p>
       </div>
     </GradientMeshBg>

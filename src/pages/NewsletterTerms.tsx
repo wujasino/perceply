@@ -21,7 +21,7 @@ const NewsletterTerms = () => {
 <div style="font-family: sans-serif; font-size: 13pt; line-height: 1.8; color: #000; background: #fff; padding: 2em; border-radius: 12px;">
 
   <h1 style="text-align:center; font-size:1.5em; margin-bottom:0.25em;">Regulamin Newslettera</h1>
-  <p style="text-align:center; margin-top:0; margin-bottom:1.5em;">w serwisie BitBrew PL</p>
+  <p style="text-align:center; margin-top:0; margin-bottom:1.5em;">w serwisie Perceply PL</p>
 
   <p><b>SPIS TREŚCI</b><br>
     <b>§ 1</b> Definicje<br>
@@ -41,7 +41,7 @@ const NewsletterTerms = () => {
     <strong>Newsletter</strong> – wiadomości dotyczące Serwisu, w tym informacje o ofertach, promocjach oraz nowościach, dostarczane nieodpłatnie Usługobiorcy przez Usługodawcę w ramach Umowy, stanowiące treści cyfrowe w rozumieniu Ustawy o prawach konsumenta.<br>
     <strong>Przedsiębiorca uprzywilejowany</strong> – Usługobiorca, który jest osobą fizyczną zawierającą Umowę (lub podejmującą czynności zmierzające do jej zawarcia), bezpośrednio związaną z jej działalnością gospodarczą, ale nieposiadającą dla niej charakteru zawodowego.<br>
     <strong>Regulamin</strong> – niniejszy regulamin.<br>
-    <strong>Serwis</strong> – serwis internetowy BitBrew PL prowadzony przez Usługodawcę pod adresem <a href="https://www.bitbrew.pl" target="_blank" rel="noopener noreferrer">www.bitbrew.pl</a>.<br>
+    <strong>Serwis</strong> – serwis internetowy Perceply PL prowadzony przez Usługodawcę pod adresem <a href="https://www.bitbrew.pl" target="_blank" rel="noopener noreferrer">www.bitbrew.pl</a>.<br>
     <strong>Umowa</strong> – umowa o dostarczanie Newslettera.<br>
     <strong>Usługobiorca</strong> – każdy podmiot, który zawarł Umowę lub podejmuje czynności zmierzające do jej zawarcia.<br>
     <strong>Usługobiorca uprzywilejowany</strong> – Usługobiorca, który jest Konsumentem lub Przedsiębiorcą uprzywilejowanym.<br>

@@ -74,7 +74,7 @@ exports.handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'BitBrew <noreply@bitbrew.pl>',
+          from: 'Perceply <noreply@bitbrew.pl>',
           to: ['kontakt@bitbrew.pl'],
           subject: `[Contact] ${payload.subject}`,
           text: `From: ${payload.name} <${payload.email}>\n\n${payload.message}`,

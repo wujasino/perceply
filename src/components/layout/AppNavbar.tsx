@@ -46,7 +46,7 @@ interface AppNavbarProps {
 export const AppNavbar = ({ collapsed = false, onToggle, onMobileToggle, chatOpen = false, onChatToggle }: AppNavbarProps) => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const sectionTitle = SECTION_TITLES[pathname] ?? 'BitBrew';
+  const sectionTitle = SECTION_TITLES[pathname] ?? 'Perceply';
   const [open, setOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);

@@ -25,7 +25,7 @@ const Terms = () => {
   <tr style="border:1px solid #ccc;">
     <th colspan="2" style="border:1px solid #ccc;padding:8px;padding-top:20px;font-size:18px;line-height:40px;background-color:#f5f5f5;color:#000;text-align:center;">
       Regulamin strony internetowej<br>
-      BitBrew PL („Regulamin")<br>
+      Perceply PL („Regulamin")<br>
       <small style="font-size:14px;font-weight:normal;">Dokument z dnia: 18.06.2026</small>
     </th>
   </tr>
@@ -40,7 +40,7 @@ const Terms = () => {
   <tr style="border:1px solid #ccc;">
     <td style="border:1px solid #ccc;padding:8px;text-align:left;font-size:14px;line-height:200%;padding-bottom:40px;background-color:#fff;color:#000;">
       <p><strong>Strona internetowa</strong></p>
-      <p>Serwis internetowy <strong>BitBrew PL</strong>, dostępny pod adresem <strong><a href="https://www.bitbrew.pl" target="_blank" rel="noopener noreferrer">www.bitbrew.pl</a></strong>, prowadzony przez Usługodawcę.</p>
+      <p>Serwis internetowy <strong>Perceply PL</strong>, dostępny pod adresem <strong><a href="https://www.bitbrew.pl" target="_blank" rel="noopener noreferrer">www.bitbrew.pl</a></strong>, prowadzony przez Usługodawcę.</p>
       <p><strong>Usługodawca</strong></p>
       <p>Patryk Rybacki<br>działalność nierejestrowana<br>Biskupia 7/2</p>
       <p>Kiedy w Regulaminie użyte są takie zwroty jak „my", „nasz", „nami" itp. należy przez to rozumieć Usługodawcę.</p>

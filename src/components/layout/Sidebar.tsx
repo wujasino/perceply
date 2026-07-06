@@ -55,7 +55,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
   const [plan, setPlan] = useState('Free');
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const logoSrc = theme === 'dark' ? '/bitbrew-logo-cream.svg' : '/landing-page-logo.png';
+  const logoSrc = theme === 'dark' ? '/perceply-logo-cream.png' : '/perceply-logo.png';
 
   // On mobile the sidebar is a full drawer — never render icon-only mode
   const effectiveCollapsed = isMobile ? false : collapsed;
@@ -91,11 +91,14 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
         {/* Logo */}
         <div className={cn('flex items-center p-4 pb-4', effectiveCollapsed ? 'justify-center' : 'justify-start')}>
           {!effectiveCollapsed ? (
-            <Link to="/dashboard" onClick={handleNavigate}>
-              <img src={logoSrc} alt="BitBrew" className="h-6 w-auto" />
+            <Link to="/dashboard" onClick={handleNavigate} className="flex items-center gap-2">
+              <img src={logoSrc} alt="Perceply" className="h-6 w-auto" />
+              <span className="text-base font-display font-semibold text-foreground tracking-tight">perceply</span>
             </Link>
           ) : (
-            <Link to="/dashboard" className="w-2 h-2 rounded-full bg-primary" aria-label="BitBrew" />
+            <Link to="/dashboard" onClick={handleNavigate} aria-label="Perceply">
+              <img src={logoSrc} alt="Perceply" className="h-5 w-auto" />
+            </Link>
           )}
         </div>
 
@@ -106,7 +109,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
           <div className="px-4 pt-3 pb-2">
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
               <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
-              <span className="text-xs font-medium text-foreground flex-1">BitBrew</span>
+              <span className="text-xs font-medium text-foreground flex-1">Perceply</span>
               <span className="text-[10px] px-2 py-0.5 rounded bg-primary text-primary-foreground font-bold">{plan}</span>
             </div>
           </div>
@@ -134,7 +137,7 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
                 <Users className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs font-medium text-foreground">Invite friends</span>
               </div>
-              <p className="text-[11px] text-muted-foreground mb-2">Share BitBrew with your team</p>
+              <p className="text-[11px] text-muted-foreground mb-2">Share Perceply with your team</p>
               <Link
                 to="/pricing"
                 onClick={handleNavigate}

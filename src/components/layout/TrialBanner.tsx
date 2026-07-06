@@ -69,7 +69,7 @@ export const TrialBanner = () => {
       case 'guest':
         return (
           <>
-            Testujesz BitBrew — masz <strong>{GUEST_FREE_ANALYSES} darmowe analizy</strong> bez rejestracji.{' '}
+            Testujesz Perceply — masz <strong>{GUEST_FREE_ANALYSES} darmowe analizy</strong> bez rejestracji.{' '}
             <Link
               to="/register"
               className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:opacity-80 transition-opacity"

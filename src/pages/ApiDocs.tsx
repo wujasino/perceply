@@ -126,7 +126,7 @@ const ApiDocs = () => {
             {/* Overview */}
             <H id="overview">Wprowadzenie</H>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              BitBrew API to REST nad HTTPS z JSON-em w body i odpowiedziach. Bazowy URL:
+              Perceply API to REST nad HTTPS z JSON-em w body i odpowiedziach. Bazowy URL:
             </p>
             <CodeBlock lang="http">{`https://api.bitbrew.pl/v1`}</CodeBlock>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -225,7 +225,7 @@ const ApiDocs = () => {
             {/* Webhooks */}
             <H id="webhooks">Webhooki</H>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Zarejestruj URL w panelu <Link to="/developers" className="text-primary hover:underline">Developers</Link>. Wysyłamy POST z JSON-em i nagłówkiem <code className="font-data text-foreground bg-muted px-1 rounded">BitBrew-Signature</code>. Spodziewamy się statusu 2xx w ciągu 5s. Przy błędzie ponawiamy z backoffem (1s, 5s, 30s, 5m, 1h).
+              Zarejestruj URL w panelu <Link to="/developers" className="text-primary hover:underline">Developers</Link>. Wysyłamy POST z JSON-em i nagłówkiem <code className="font-data text-foreground bg-muted px-1 rounded">Perceply-Signature</code>. Spodziewamy się statusu 2xx w ciągu 5s. Przy błędzie ponawiamy z backoffem (1s, 5s, 30s, 5m, 1h).
             </p>
 
             <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mt-5 mb-1">Przykładowy payload</p>
@@ -268,7 +268,7 @@ const ApiDocs = () => {
             {/* Signature */}
             <H id="signature">Weryfikacja podpisu</H>
             <p className="text-sm text-muted-foreground">
-              Każdy webhook zawiera nagłówek <code className="font-data text-foreground bg-muted px-1 rounded">BitBrew-Signature: t=…,v1=…</code> z HMAC-SHA256 z surowego body i Twojego sekretu webhooka.
+              Każdy webhook zawiera nagłówek <code className="font-data text-foreground bg-muted px-1 rounded">Perceply-Signature: t=…,v1=…</code> z HMAC-SHA256 z surowego body i Twojego sekretu webhooka.
             </p>
             <CodeBlock lang="node">{`import crypto from 'node:crypto';
 
