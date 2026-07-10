@@ -24,6 +24,16 @@ const USD = {
   credits_120: '$39',
 };
 
+const EUR = {
+  solo_monthly: '€27',
+  solo_yearly: '€259',
+  growth_monthly: '€75',
+  growth_yearly: '€695',
+  credits_20: '€8',
+  credits_50: '€18',
+  credits_120: '€36',
+};
+
 const PLN = {
   solo_monthly: '99 zł',
   solo_yearly: '950 zł',
@@ -34,20 +44,27 @@ const PLN = {
   credits_120: '169 zł',
 };
 
-const SOCIAL_PROOF_BRANDS = ['Shopify Plus', 'Brainly', 'Booksy', 'inPost', 'Tidio', 'Packhelp'];
-
 const Pricing = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingCredits, setLoadingCredits] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [currency, setCurrency] = useState<'pln' | 'usd'>('usd');
+  const [currency, setCurrency] = useState<'pln' | 'usd' | 'eur'>('usd');
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
-  const prices = currency === 'pln' ? PLN : USD;
+  const prices = currency === 'pln' ? PLN : currency === 'eur' ? EUR : USD;
   const period_month = '/mo';
   const period_year  = '/yr';
+
+  // Auto-detect currency from browser locale (manual toggle still overrides)
+  useEffect(() => {
+    const lang = (navigator.language || '').toLowerCase();
+    const eurozone = ['de', 'fr', 'es', 'it', 'nl', 'pt', 'fi', 'ie', 'at', 'be', 'gr', 'sk', 'si', 'lv', 'lt', 'ee', 'lu', 'mt', 'cy', 'hr'];
+    if (lang.startsWith('pl')) setCurrency('pln');
+    else if (eurozone.some(code => lang.startsWith(code))) setCurrency('eur');
+    else setCurrency('usd');
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setIsLoggedIn(!!user));
@@ -235,7 +252,7 @@ const Pricing = () => {
     { q: 'Can I cancel anytime?',             a: 'Yes — cancel at any time and keep access until the end of your billing period.' },
     { q: 'What happens if I exceed my limit?', a: 'If you hit your plan limit, you can upgrade instantly or purchase additional analysis credits.' },
     { q: 'Can I change plans later?',          a: 'Absolutely — switch plans anytime without losing your existing data.' },
-    { q: 'Will I receive a VAT invoice?',      a: 'Yes — all payments go through Stripe, which automatically generates VAT-compliant invoices sent to your email. For EU companies, enter your VAT number in the Stripe checkout to receive a B2B invoice.' },
+    { q: 'Will I receive a VAT invoice?',      a: 'Yes — every payment automatically generates a VAT-compliant invoice sent to your email. For EU companies, enter your VAT number at checkout to receive a B2B invoice.' },
     { q: 'How do you handle my company data?', a: 'Any brand context you upload stays in your private workspace. We never train AI models on your data, never share it with third parties beyond the AI providers needed to run each analysis, and we are fully GDPR compliant.' },
     { q: 'Can I change plans mid-billing cycle?', a: 'Yes — upgrade takes effect immediately and is prorated. Downgrading applies at the end of the current billing period so you always get what you paid for.' },
     { q: 'Need help choosing a plan?',         a: 'Our team is available by email to recommend the best option for your brand.' },
@@ -266,7 +283,7 @@ const Pricing = () => {
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-xs text-muted-foreground/70">Your subscription will be cancelled via Stripe — access continues until the end of the current billing period.</p>
+              <p className="mt-3 text-xs text-muted-foreground/70">Your subscription will be cancelled — access continues until the end of the current billing period.</p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2 mt-2">
@@ -299,7 +316,7 @@ const Pricing = () => {
 
           {/* Currency toggle */}
           <div className="flex items-center justify-center mt-6 gap-1 p-1 rounded-lg border border-[hsl(var(--glass-border))] bg-muted/40 w-fit mx-auto">
-            {(['pln', 'usd'] as const).map(c => (
+            {(['pln', 'usd', 'eur'] as const).map(c => (
               <button
                 key={c}
                 onClick={() => setCurrency(c)}
@@ -309,7 +326,7 @@ const Pricing = () => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {c === 'pln' ? '🇵🇱 PLN' : '🇺🇸 USD'}
+                {c === 'pln' ? '🇵🇱 PLN' : c === 'usd' ? '🇺🇸 USD' : '🇪🇺 EUR'}
               </button>
             ))}
           </div>
@@ -374,21 +391,23 @@ const Pricing = () => {
 
         {/* Social proof + FAQ */}
         <div className="mt-16 space-y-10">
-          <div className="rounded-3xl border border-slate-900/10 bg-slate-950/60 p-8 text-center">
+          <div className="rounded-3xl border border-[hsl(var(--glass-border))] bg-card/60 p-8 text-center">
             <p className="text-sm uppercase tracking-[0.35em] text-primary mb-3">
-              Trusted by
+              Built for the AI era
             </p>
             <h2 className="text-2xl font-display text-foreground max-w-2xl mx-auto">
-              Join 200+ brands already monitoring AI visibility.
+              Stay ahead of AI-driven reputation and search shifts.
             </h2>
-            <p className="mt-4 text-sm text-muted-foreground max-w-2xl mx-auto">
-              Trusted brand teams use BitBrew to stay ahead of AI-driven reputation and search shifts.
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6">
-              {SOCIAL_PROOF_BRANDS.map((name) => (
-                <span key={name} className="text-sm font-medium text-muted-foreground/40 select-none">
-                  {name}
-                </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 text-left">
+              {[
+                { title: 'GEO-first approach', desc: 'Built around Generative Engine Optimization — the emerging standard for AI-era brand visibility.' },
+                { title: '3 leading AI models', desc: 'Coverage across ChatGPT, Claude and Gemini — the assistants your customers ask for recommendations.' },
+                { title: 'Track over time', desc: 'Repeatable monthly audits show whether your optimization work actually moves the needle.' },
+              ].map(item => (
+                <div key={item.title} className="rounded-2xl border border-[hsl(var(--glass-border))] bg-background/60 p-5">
+                  <p className="text-sm font-semibold text-foreground mb-1.5">{item.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+                </div>
               ))}
             </div>
           </div>

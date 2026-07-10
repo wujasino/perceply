@@ -29,7 +29,7 @@ const Privacy = () => {
   </section>
 
   <h1 style="text-align:center; font-size:1.5em; margin-bottom:0.5em;">
-    Polityka prywatności Serwisu BitBrew PL<br>
+    Polityka prywatności Serwisu Perceply PL<br>
     <a href="https://www.bitbrew.pl" target="_blank" rel="noopener noreferrer">www.bitbrew.pl</a><br>
     („Serwis")
   </h1>

@@ -175,7 +175,7 @@ const Profile = () => {
             </Avatar>
             <div>
               <h1 className="text-xl font-semibold text-foreground">{email || '…'}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">BitBrew User</p>
+              <p className="text-sm text-muted-foreground mt-0.5">Perceply User</p>
               <div className="mt-2 flex items-center gap-2">
                 <span className={`inline-flex h-2 w-2 rounded-full ring-2 ${SUB_DOT[subStatus]} animate-pulse`} />
                 <span className="text-xs text-muted-foreground">{t(SUB_STATUS_KEY[subStatus])}</span>

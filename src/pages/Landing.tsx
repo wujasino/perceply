@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight } from 'lucide-react';
+import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight, Bot, Globe, Repeat } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -27,8 +27,8 @@ const AFTER  = { mentions: '7 / 10', sentiment: '81', recommend: '63%' };
 
 const FAQ_EN = [
   {
-    q: 'What does BitBrew actually do?',
-    a: 'BitBrew fires structured prompts at foundation models — GPT-4o, Claude, Gemini, Perplexity, Mistral and more — then scores your brand across 5 dimensions: authority, sentiment, accuracy, mention rate, and recency. Result: one visibility score, model-by-model breakdown, and a ranked list of actionable improvements.',
+    q: 'What does Perceply actually do?',
+    a: 'Perceply fires structured prompts at foundation models — GPT-4o, Claude, Gemini, Perplexity, Mistral and more — then scores your brand across 5 dimensions: authority, sentiment, accuracy, mention rate, and recency. Result: one visibility score, model-by-model breakdown, and a ranked list of actionable improvements.',
   },
   {
     q: 'Which AI models do you query?',
@@ -100,7 +100,7 @@ const Landing = () => {
                 </span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-                BitBrew analyzes how ChatGPT, Claude, Gemini and other AI models perceive your brand — and shows you what to improve.
+                Perceply analyzes how ChatGPT, Claude, Gemini and other AI models perceive your brand — and shows you what to improve.
               </p>
             </motion.div>
 
@@ -306,7 +306,7 @@ const Landing = () => {
               Case study
             </span>
             <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-              Before and after BitBrew
+              Before and after Perceply
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
               See the difference brand optimization makes in AI model responses.
@@ -326,7 +326,7 @@ const Landing = () => {
                 <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/20">
                   Before
                 </span>
-                <span className="text-xs text-muted-foreground">— baseline BitBrew scan</span>
+                <span className="text-xs text-muted-foreground">— baseline Perceply scan</span>
               </div>
               <div className="space-y-5">
                 <div>
@@ -393,10 +393,10 @@ const Landing = () => {
               Who is it for?
             </span>
             <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-              Who uses BitBrew?
+              Who uses Perceply?
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              From startups to large brands — if you care how AI describes your company, BitBrew gives you the full picture.
+              From startups to large brands — if you care how AI describes your company, Perceply gives you the full picture.
             </p>
           </motion.div>
 
@@ -500,6 +500,46 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Global standards strip ────────────────────────────────── */}
+      <section className="py-16 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              {
+                icon: Globe,
+                title: 'GEO-first approach',
+                desc: 'Built around Generative Engine Optimization — the emerging standard for AI-era brand visibility.',
+              },
+              {
+                icon: Bot,
+                title: '3 leading AI models',
+                desc: 'Coverage across ChatGPT, Claude and Gemini — the assistants your customers ask for recommendations.',
+              },
+              {
+                icon: Repeat,
+                title: 'Track over time',
+                desc: 'Repeatable monthly audits show whether your optimization work actually moves the needle.',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="glass-card p-6 flex flex-col gap-3"
+              >
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Comparison table ──────────────────────────────────────── */}
       <section className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
         <div className="max-w-5xl mx-auto">
@@ -508,10 +548,10 @@ const Landing = () => {
               Comparison
             </span>
             <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-              BitBrew vs. other tools
+              Perceply vs. other tools
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Traditional tools monitor social media and search engines. BitBrew monitors what AI says about your brand.
+              Traditional tools monitor social media and search engines. Perceply monitors what AI says about your brand.
             </p>
           </motion.div>
 
@@ -528,7 +568,7 @@ const Landing = () => {
                     </th>
                     <th className="px-6 py-4 text-center bg-primary/5 border-x border-primary/20">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-bold text-primary">BitBrew</span>
+                        <span className="font-bold text-primary">Perceply</span>
                         <span className="text-[10px] text-primary/60 font-normal">AI-native</span>
                       </div>
                     </th>
@@ -573,7 +613,7 @@ const Landing = () => {
               </table>
             </div>
             <p className="text-center text-xs text-muted-foreground/40 mt-4">
-              SEMrush and Brandwatch are great tools for traditional monitoring — BitBrew complements them with the AI channel.
+              SEMrush and Brandwatch are great tools for traditional monitoring — Perceply complements them with the AI channel.
             </p>
           </motion.div>
         </div>
@@ -661,8 +701,7 @@ const Landing = () => {
             {[
               { icon: '🔒', label: 'SSL / TLS', sub: 'Encrypted connection' },
               { icon: '🇪🇺', label: 'GDPR Ready', sub: 'EU-compliant data' },
-              { icon: '🏦', label: 'Stripe', sub: 'Secure payments' },
-              { icon: '⚡', label: 'Netlify CDN', sub: 'Global hosting' },
+              { icon: '💳', label: 'Secure payments', sub: 'SSL-encrypted checkout' },
               { icon: '🔐', label: '2FA', sub: 'Account protection' },
             ].map(badge => (
               <div key={badge.label} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-[hsl(var(--glass-border))] bg-card/40">
@@ -701,6 +740,68 @@ const Landing = () => {
           >
             <ContactForm />
           </motion.div>
+        </div>
+      </section>
+
+      {/* ── Methodology ───────────────────────────────────────────── */}
+      <section id="methodology" className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+              Methodology
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+              How Perceply measures AI visibility
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+              Transparent, reproducible measurement — so every score can be traced back to real AI responses.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {
+                icon: Bot,
+                title: 'Multi-model querying',
+                desc: 'We query ChatGPT, Claude and Gemini through their official APIs with category-level prompts your customers actually ask.',
+              },
+              {
+                icon: BarChart3,
+                title: 'AI Share of Voice',
+                desc: 'We measure how often your brand appears in AI answers versus competitors — mention rate, ranking position and recommendation strength.',
+              },
+              {
+                icon: Eye,
+                title: 'Sentiment & context analysis',
+                desc: 'Every mention is scored for sentiment and factual accuracy, so you know not just if AI talks about you, but how.',
+              },
+              {
+                icon: TrendingUp,
+                title: 'Score 0–100',
+                desc: 'All signals combine into a single visibility score you can track over time and benchmark against your category.',
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="glass-card p-6 flex flex-col gap-3"
+              >
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
+                  <item.icon className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

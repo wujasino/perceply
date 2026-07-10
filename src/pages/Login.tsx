@@ -254,9 +254,11 @@ const Login = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.message?.includes('Invalid login credentials')) {
-        setError(t('invalid_credentials') || 'Nieprawidłowe dane logowania');
+        setError('Incorrect email or password. Please check your details and try again.');
+      } else if (err.message?.includes('Email not confirmed')) {
+        setError('Your email is not confirmed yet. Please check your inbox for the activation link.');
       } else {
-        setError(err.message || 'Login error');
+        setError(err.message || 'Login error. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -290,7 +292,7 @@ const Login = () => {
         className="hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between p-10 border-r border-[hsl(var(--glass-border))] bg-card/30"
       >
         <Link to="/" className="flex items-center w-fit">
-          <img src="/landing-page-logo.png" alt="BitBrew" height="28" className="h-7" />
+          <img src="/landing-page-logo.png" alt="Perceply" height="28" className="h-7" />
         </Link>
 
         <div className="space-y-8">
@@ -300,7 +302,7 @@ const Login = () => {
               <span className="text-primary">sees your brand</span>
             </h2>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Hundreds of brands use BitBrew to monitor and improve their visibility in AI models.
+              Hundreds of brands use Perceply to monitor and improve their visibility in AI models.
             </p>
           </div>
 
@@ -329,7 +331,7 @@ const Login = () => {
           </div>
         </div>
 
-        <p className="text-[11px] text-muted-foreground/50">© 2024 BitBrew</p>
+        <p className="text-[11px] text-muted-foreground/50">© 2024 Perceply</p>
       </FloatingPathsBackground>
 
       {/* ── Right panel ── */}
@@ -338,7 +340,7 @@ const Login = () => {
           {/* Top bar: mobile logo + back button */}
           <div className="flex items-center justify-between mb-6 lg:mb-4">
             <Link to="/" className="lg:hidden flex items-center">
-              <img src="/landing-page-logo.png" alt="BitBrew" className="h-6" />
+              <img src="/landing-page-logo.png" alt="Perceply" className="h-6" />
             </Link>
             <Link
               to="/"

@@ -35,21 +35,21 @@ const queryClient = new QueryClient({
 });
 
 const PAGE_TITLES: Record<string, string> = {
-  '/':           'BitBrew — AI Brand Visibility Scanner',
-  '/dashboard':  'Dashboard | BitBrew',
-  '/pricing':    'Pricing | BitBrew',
-  '/profile':    'Profile | BitBrew',
-  '/settings':   'Settings | BitBrew',
-  '/developers': 'Developers | BitBrew',
-  '/login':      'Sign In | BitBrew',
-  '/register':   'Sign Up | BitBrew',
-  '/docs/api':   'API Docs | BitBrew',
+  '/':           'Perceply — AI Brand Visibility Scanner',
+  '/dashboard':  'Dashboard | Perceply',
+  '/pricing':    'Pricing | Perceply',
+  '/profile':    'Profile | Perceply',
+  '/settings':   'Settings | Perceply',
+  '/developers': 'Developers | Perceply',
+  '/login':      'Sign In | Perceply',
+  '/register':   'Sign Up | Perceply',
+  '/docs/api':   'API Docs | Perceply',
 };
 
 const PageTitle = () => {
   const { pathname } = useLocation();
   useEffect(() => {
-    document.title = PAGE_TITLES[pathname] ?? 'BitBrew';
+    document.title = PAGE_TITLES[pathname] ?? 'Perceply';
   }, [pathname]);
   return null;
 };

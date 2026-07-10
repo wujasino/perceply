@@ -92,7 +92,7 @@ const Developers = () => {
             </div>
             <h1 className="text-3xl font-display text-foreground">API & Webhooks</h1>
             <p className="text-muted-foreground text-sm mt-1.5">
-              Integrate BitBrew with your own stack. Manage API keys and webhooks.
+              Integrate Perceply with your own stack. Manage API keys and webhooks.
             </p>
           </div>
           <Link

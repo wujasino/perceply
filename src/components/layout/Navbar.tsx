@@ -29,7 +29,7 @@ export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const logoSrc = theme === 'dark' ? '/bitbrew-logo-cream.svg' : '/landing-page-logo.png';
+  const logoSrc = theme === 'dark' ? '/perceply-logo-cream.png' : '/perceply-logo.png';
   const [mobileOpen, setMobileOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(false);
@@ -191,7 +191,8 @@ export const Navbar = () => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0">
-              <img src={logoSrc} alt="BitBrew" className="h-7 w-auto" />
+              <img src={logoSrc} alt="Perceply" className="h-7 w-auto" />
+              <span className="text-lg font-display font-semibold text-foreground tracking-tight">perceply</span>
             </Link>
           </div>
 

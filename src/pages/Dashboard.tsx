@@ -143,7 +143,7 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
   };
 
   return (
-    <div className="relative rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 backdrop-blur-xl overflow-hidden mb-6">
+    <div className="relative rounded-2xl border border-border bg-card/90 dark:bg-card/40 backdrop-blur-xl overflow-hidden mb-6 shadow-sm dark:shadow-none">
       {/* Gradient mesh background */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
@@ -174,10 +174,10 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
               {delta !== 0 && (
                 <span className={cn(
                   'inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium',
-                  delta > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
+                  delta > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/10 text-red-600 dark:text-red-400'
                 )}>
                   {delta > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {Math.abs(delta)} pkt
+                  {Math.abs(delta)} pts
                 </span>
               )}
             </div>
@@ -217,9 +217,9 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
                   {t('dashboard_strongest')}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Target className="w-3.5 h-3.5 text-emerald-400" />
+                  <Target className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span className="text-sm font-medium text-foreground capitalize">{t(`dim_${strongest[0]}`)}</span>
-                  <span className="text-xs text-emerald-400 font-data">{Math.round(strongest[1])}%</span>
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-data">{Math.round(strongest[1])}%</span>
                 </div>
               </div>
               <div>
@@ -227,9 +227,9 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
                   {t('dashboard_weakest')}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5 text-amber-400" />
+                  <Activity className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span className="text-sm font-medium text-foreground capitalize">{t(`dim_${weakest[0]}`)}</span>
-                  <span className="text-xs text-amber-400 font-data">{Math.round(weakest[1])}%</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 font-data">{Math.round(weakest[1])}%</span>
                 </div>
               </div>
             </div>
@@ -253,19 +253,19 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 0.4 }}
-            className="mt-6 rounded-xl border border-red-500/30 bg-red-500/5 p-4"
+            className="mt-6 rounded-xl border border-red-500/30 bg-red-500/[0.07] dark:bg-red-500/5 p-4"
           >
             <div className="flex items-start gap-3">
               <div className="shrink-0 w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 flex items-center justify-center mt-0.5">
-                <Swords className="w-4 h-4 text-red-400" />
+                <Swords className="w-4 h-4 text-red-500 dark:text-red-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-red-300 mb-1">
+                <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">
                   {t('dashboard_low_score_alert_title') !== 'dashboard_low_score_alert_title'
                     ? t('dashboard_low_score_alert_title')
                     : 'AI recommends your competitors — not you'}
                 </p>
-                <p className="text-xs text-red-300/70 leading-relaxed">
+                <p className="text-xs text-red-700/80 dark:text-red-300/70 leading-relaxed">
                   {t('dashboard_low_score_alert_body') !== 'dashboard_low_score_alert_body'
                     ? t('dashboard_low_score_alert_body')
                     : `A score of ${score}% means that when someone asks ChatGPT or Gemini for a solution in your category, the models recommend competitors. Your brand is invisible in AI — this is a direct loss of customers.`}
@@ -274,9 +274,9 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
                   {result.sources?.slice(0, 3).map((s, i) => (
                     <span key={i} className={cn(
                       'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium',
-                      s.sentiment === 'Negative' ? 'bg-red-500/15 text-red-300' :
-                      s.sentiment === 'Neutral' ? 'bg-amber-500/10 text-amber-300' :
-                      'bg-emerald-500/10 text-emerald-300'
+                      s.sentiment === 'Negative' ? 'bg-red-500/15 text-red-700 dark:text-red-300' :
+                      s.sentiment === 'Neutral' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' :
+                      'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                     )}>
                       {s.model}: {s.sentiment === 'Negative' ? '✗ does not recommend' : s.sentiment === 'Neutral' ? '~ neutral' : '✓ recommends'}
                     </span>
@@ -342,7 +342,7 @@ const Dashboard = () => {
   const [copiedEmbed, setCopiedEmbed] = useState(false);
   const badgeBrand = result?.brandName || brandFromUrl || 'Your Brand';
   const badgeSrc = `${typeof window !== 'undefined' ? window.location.origin : 'https://www.bitbrew.pl'}/.netlify/functions/badge?brand=${encodeURIComponent(badgeBrand)}`;
-  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="BitBrew AI Visibility" height="36" /></a>`;
+  const embedCode = `<a href="https://www.bitbrew.pl" target="_blank" rel="noopener"><img src="${badgeSrc}" alt="Perceply AI Visibility" height="36" /></a>`;
   const copyEmbed = async () => {
     try {
       await navigator.clipboard.writeText(embedCode);
@@ -402,7 +402,7 @@ const Dashboard = () => {
   if (isIdle) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex items-center justify-center px-4">
+        <div className="flex-1 flex justify-center px-4 pt-16 sm:pt-24">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -428,7 +428,7 @@ const Dashboard = () => {
                   autoFocus
                   value={inputValue}
                   onChange={(e) => { setInputValue(e.target.value); setModerationError(''); }}
-                  placeholder="np. Apple, Tesla, Nike…"
+                  placeholder="e.g. Apple, Tesla, Nike…"
                   className="w-full bg-card/40 backdrop-blur-xl border border-[hsl(var(--glass-border))] text-foreground placeholder:text-muted-foreground text-base rounded-xl py-3.5 pl-11 pr-4 focus:outline-none focus:border-primary/40 transition-colors"
                 />
               </div>
@@ -443,6 +443,33 @@ const Dashboard = () => {
             {moderationError && (
               <p className="text-xs text-destructive mt-2 text-left">{moderationError}</p>
             )}
+
+            {/* Quick suggestions — one click starts a sample analysis */}
+            {!inputValue.trim() && (
+              <div className="mt-6">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground/60 mb-3">
+                  Or try a popular brand
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  {['Coca-Cola', 'Tesla', 'Nike'].map(brand => (
+                    <button
+                      key={brand}
+                      type="button"
+                      onClick={() => {
+                        setInputValue(brand);
+                        setSearchParams({ brand });
+                        startBrewing(brand);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[hsl(var(--glass-border))] bg-card/60 text-sm text-foreground hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-primary" />
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {inputValue.trim().length > 1 && (
               <div className="mt-6 text-left">
                 <BrandKnowledgeForm brandName={inputValue} />
@@ -694,7 +721,7 @@ const Dashboard = () => {
                   </div>
                   <p className="text-xs text-muted-foreground mb-4">{t('embed_desc')}</p>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <img src={badgeSrc} alt="BitBrew AI Visibility badge" height={36} className="h-9 shrink-0" />
+                    <img src={badgeSrc} alt="Perceply AI Visibility badge" height={36} className="h-9 shrink-0" />
                     <div className="flex-1 flex items-center gap-2 min-w-0">
                       <code className="flex-1 text-[11px] text-muted-foreground bg-background border border-input rounded-lg px-3 py-2 truncate font-data">
                         {embedCode}
