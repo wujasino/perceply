@@ -5,7 +5,8 @@ import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp,
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { PromptInputBox } from '@/components/ui/ai-prompt-box';
+import { BrandScanInput } from '@/components/BrandScanInput';
+import { ScanResultPreview } from '@/components/ScanResultPreview';
 import { CookiePanel } from '@/components/ui/cookie-banner-1';
 import { NewsletterSignup } from '@/components/ui/newsletter-signup';
 import { GradientMeshBg } from '@/components/ui/gradient-mesh-bg';
@@ -111,14 +112,10 @@ const Landing = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="max-w-xl mx-auto"
             >
-              <PromptInputBox
-                isLoading={false}
+              <BrandScanInput
                 placeholder="e.g. Tesla, Apple, Nike…"
-                onSend={(message) => {
-                  if (message.trim()) {
-                    navigate(`/dashboard?brand=${encodeURIComponent(message.trim())}`);
-                  }
-                }}
+                suggestions={['Tesla', 'Apple', 'Nike']}
+                onSubmit={(brand) => navigate(`/dashboard?brand=${encodeURIComponent(brand)}`)}
               />
             </motion.div>
 
@@ -152,14 +149,15 @@ const Landing = () => {
               </div>
             </section>
 
-            <motion.p
+            <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="text-xs text-muted-foreground/50 mt-4"
+              onClick={() => document.getElementById('sample-report')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-xs text-muted-foreground/70 hover:text-primary transition-colors mt-4 underline underline-offset-4 decoration-dotted"
             >
-              See a demo
-            </motion.p>
+              See what results you get →
+            </motion.button>
 
             {/* scroll hint */}
             <motion.button
@@ -174,6 +172,30 @@ const Landing = () => {
                 <ChevronDown className="w-4 h-4" />
               </motion.div>
             </motion.button>
+          </div>
+        </section>
+
+        {/* ── Sample report: what you get after a scan ──────────────── */}
+        <section id="sample-report" className="py-20 px-4 scroll-mt-24">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-10"
+            >
+              <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+                What you get
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+                Your report, seconds after scanning
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                One visibility score, a breakdown across five signals, how each AI model talks about you, and the single highest-impact action to take next.
+              </p>
+            </motion.div>
+
+            <ScanResultPreview />
           </div>
         </section>
 
