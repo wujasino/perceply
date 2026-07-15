@@ -32,6 +32,9 @@ interface PricingCardsProps extends React.HTMLAttributes<HTMLDivElement> {
   onCycleChange: (cycle: BillingCycle) => void;
   onPlanSelect: (planId: string, cycle: BillingCycle) => void;
   loadingPlan?: string | null;
+  /** Show the built-in monthly/yearly toggle above the cards. Off when the host
+   *  page renders its own billing toggle (e.g. the pricing control bar). */
+  showBillingToggle?: boolean;
 }
 
 export const PricingCards: React.FC<PricingCardsProps> = ({
@@ -40,6 +43,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
   onCycleChange,
   onPlanSelect,
   loadingPlan,
+  showBillingToggle = true,
   className,
   ...props
 }) => {
@@ -49,6 +53,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
   return (
     <div className={cn("w-full", className)} {...props}>
       {/* Billing toggle — extra top padding so the savings badge doesn't clip */}
+      {showBillingToggle && (
       <div className="flex justify-center pt-6 pb-10">
         <ToggleGroup
           type="single"
@@ -78,11 +83,16 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
+      )}
 
       {/* Cards grid — align-stretch so all cards same height */}
       <div className={cn(
         "grid gap-5 items-stretch",
-        plans.length <= 3 ? "md:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"
+        plans.length <= 3
+          ? "md:grid-cols-3"
+          : plans.length === 4
+            ? "sm:grid-cols-2 lg:grid-cols-4"
+            : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
       )}>
         {plans.map((plan, index) => {
           const currentPrice = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly;
@@ -96,9 +106,7 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
               key={plan.id}
               className={cn(
                 "flex flex-col overflow-hidden rounded-2xl transition-shadow duration-300 hover:shadow-lg",
-                plan.isPopular
-                  ? "ring-2 ring-primary shadow-lg shadow-primary/15 border-primary/30"
-                  : "shadow-sm"
+                plan.isPopular ? "shadow-lg" : "shadow-sm"
               )}
             >
               {/* Top: plan name, price, CTA */}
@@ -106,8 +114,8 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
                 <div className="flex items-center justify-between gap-2 mb-4 min-h-[1.5rem]">
                   <span className="text-sm font-medium text-muted-foreground">{plan.name}</span>
                   {plan.isPopular && (
-                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 bg-primary text-primary-foreground rounded-full shrink-0 whitespace-nowrap">
-                      {t('most_popular')}
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full shrink-0 whitespace-nowrap text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-sm">
+                      {t('popular')}
                     </span>
                   )}
                 </div>
