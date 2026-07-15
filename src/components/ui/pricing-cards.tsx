@@ -2,8 +2,8 @@ import * as React from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, X } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Check, X, Plus } from "lucide-react";
 import { useTranslation } from "@/lib/locale";
 
 type BillingCycle = 'monthly' | 'yearly';
@@ -33,24 +33,6 @@ interface PricingCardsProps extends React.HTMLAttributes<HTMLDivElement> {
   onPlanSelect: (planId: string, cycle: BillingCycle) => void;
   loadingPlan?: string | null;
 }
-
-const FeatureItem: React.FC<{ feature: PricingFeature }> = ({ feature }) => {
-  const Icon = feature.isIncluded ? Check : X;
-  return (
-    <li className="flex items-start gap-3 py-1.5">
-      <Icon
-        className={cn(
-          "h-4 w-4 shrink-0 mt-0.5",
-          feature.isIncluded ? "text-primary" : "text-muted-foreground/50"
-        )}
-        aria-hidden="true"
-      />
-      <span className={cn("text-sm leading-snug", feature.isIncluded ? "text-foreground" : "text-muted-foreground/60 line-through")}>
-        {feature.name}
-      </span>
-    </li>
-  );
-};
 
 export const PricingCards: React.FC<PricingCardsProps> = ({
   plans,
@@ -102,63 +84,75 @@ export const PricingCards: React.FC<PricingCardsProps> = ({
         "grid gap-5 items-stretch",
         plans.length <= 3 ? "md:grid-cols-3" : "sm:grid-cols-2 lg:grid-cols-4"
       )}>
-        {plans.map((plan) => {
+        {plans.map((plan, index) => {
           const currentPrice = billingCycle === 'monthly' ? plan.priceMonthly : plan.priceYearly;
           const currentPeriod = billingCycle === 'monthly' ? plan.periodMonthly : plan.periodYearly;
           const isLoading = loadingPlan === plan.id;
+          const included = plan.features.filter((f) => f.isIncluded);
+          const prevName = index > 0 ? plans[index - 1].name : null;
 
           return (
             <Card
               key={plan.id}
               className={cn(
-                "flex flex-col transition-shadow duration-300 hover:shadow-lg",
+                "flex flex-col overflow-hidden rounded-2xl transition-shadow duration-300 hover:shadow-lg",
                 plan.isPopular
                   ? "ring-2 ring-primary shadow-lg shadow-primary/15 border-primary/30"
                   : "shadow-sm"
               )}
             >
-              <CardHeader className="p-5 pb-4 space-y-0">
-                {/* Popular badge — inline, no absolute positioning */}
-                {plan.isPopular ? (
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <CardTitle className="text-lg font-bold">{plan.name}</CardTitle>
-                    <span className="text-xs font-semibold px-2.5 py-1 bg-primary text-primary-foreground rounded-full shrink-0 whitespace-nowrap">
+              {/* Top: plan name, price, CTA */}
+              <div className="p-6 pb-5">
+                <div className="flex items-center justify-between gap-2 mb-4 min-h-[1.5rem]">
+                  <span className="text-sm font-medium text-muted-foreground">{plan.name}</span>
+                  {plan.isPopular && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 bg-primary text-primary-foreground rounded-full shrink-0 whitespace-nowrap">
                       {t('most_popular')}
                     </span>
-                  </div>
-                ) : (
-                  <CardTitle className="text-lg font-bold mb-2">{plan.name}</CardTitle>
-                )}
-                <CardDescription className="text-sm">{plan.description}</CardDescription>
-                <div className="pt-4">
-                  <p className="text-3xl font-extrabold text-foreground leading-none">
-                    {currentPrice}
-                    {currentPeriod && (
-                      <span className="text-sm font-normal text-muted-foreground ml-1">{currentPeriod}</span>
-                    )}
-                  </p>
+                  )}
                 </div>
-              </CardHeader>
 
-              <CardContent className="flex-1 px-5 py-0">
-                <ul className="space-y-0">
-                  {plan.features.map((feature) => (
-                    <FeatureItem key={feature.name} feature={feature} />
-                  ))}
-                </ul>
-              </CardContent>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-display font-bold text-foreground tracking-tight leading-none">
+                    {currentPrice}
+                  </span>
+                  {currentPeriod && (
+                    <span className="text-sm font-medium text-primary/70">{currentPeriod}</span>
+                  )}
+                </div>
 
-              <CardFooter className="p-5 pt-4">
+                <p className="text-xs text-muted-foreground mt-3 leading-relaxed min-h-[2.5rem]">
+                  {plan.description}
+                </p>
+
                 <Button
                   onClick={() => onPlanSelect(plan.id, billingCycle)}
                   disabled={isLoading}
                   variant={plan.isPopular ? 'default' : 'outline'}
-                  className="w-full"
+                  className={cn("w-full mt-4 rounded-xl", !plan.isPopular && "text-primary hover:text-primary")}
                   size="lg"
                 >
-                  {isLoading ? 'Ładowanie...' : plan.buttonLabel}
+                  {isLoading ? 'Loading…' : plan.buttonLabel}
                 </Button>
-              </CardFooter>
+              </div>
+
+              {/* Bottom: included features + inheritance note */}
+              <div className="flex-1 border-t border-border bg-muted/30 p-6 pt-5">
+                <ul className="space-y-3">
+                  {included.map((feature) => (
+                    <li key={feature.name} className="flex items-start gap-2.5">
+                      <Check className="h-4 w-4 shrink-0 mt-0.5 text-foreground/70" aria-hidden="true" />
+                      <span className="text-sm leading-snug text-foreground">{feature.name}</span>
+                    </li>
+                  ))}
+                </ul>
+                {prevName && (
+                  <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    Everything in {prevName}
+                  </p>
+                )}
+              </div>
             </Card>
           );
         })}

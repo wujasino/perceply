@@ -88,7 +88,7 @@ const Pricing = () => {
       return;
     }
     if (planId === 'enterprise') {
-      window.location.href = 'mailto:kontakt@bitbrew.pl?subject=Enterprise Plan';
+      window.location.href = 'mailto:kontakt@bitbrew.pl?subject=Custom Plan';
       return;
     }
 
@@ -207,7 +207,7 @@ const Pricing = () => {
     },
     {
       id: 'growth',
-      name: 'Growth',
+      name: 'Business',
       description: 'For growing teams who need deeper competitive insights.',
       priceMonthly: prices.growth_monthly,
       priceYearly: prices.growth_yearly,
@@ -227,10 +227,10 @@ const Pricing = () => {
     },
     {
       id: 'enterprise',
-      name: 'Enterprise Suite',
-      description: 'For enterprises requiring full AI visibility control.',
-      priceMonthly: 'Custom pricing',
-      priceYearly: 'Custom pricing',
+      name: 'Custom',
+      description: 'A tailored plan for teams that need full AI visibility control.',
+      priceMonthly: "Let's talk",
+      priceYearly: "Let's talk",
       periodMonthly: '',
       periodYearly: '',
       isPopular: false,
