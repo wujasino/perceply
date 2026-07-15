@@ -8,6 +8,7 @@ import { RadarChartCard } from '@/components/charts/RadarChartCard';
 import { SentimentChart } from '@/components/charts/SentimentChart';
 import { SourceDonutChart } from '@/components/charts/SourceDonutChart';
 import { SourceTable } from '@/components/SourceTable';
+import { ResultsBreakdown } from '@/components/ResultsBreakdown';
 import BrandKnowledgeForm from '@/components/BrandKnowledgeForm';
 import { useBrewing } from '@/hooks/useBrewing';
 import { useTTS, loadVoicePrefs } from '@/hooks/useTTS';
@@ -611,6 +612,11 @@ const Dashboard = () => {
           >
             {/* Hero band */}
             <ScoreHero result={result} t={t} />
+
+            {/* Results by dimension + recommended actions — the concrete takeaway */}
+            <div className="mb-5">
+              <ResultsBreakdown result={result} />
+            </div>
 
             {/* Grid */}
             <div className="grid grid-cols-12 gap-5">
