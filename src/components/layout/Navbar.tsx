@@ -192,7 +192,7 @@ export const Navbar = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 shrink-0">
               <img src={logoSrc} alt="Perceply" className="h-7 w-auto" />
-              <span className="text-lg font-display font-semibold text-foreground tracking-tight">perceply</span>
+              <span className="text-lg font-display font-semibold text-foreground tracking-tight">Perceply</span>
             </Link>
           </div>
 
