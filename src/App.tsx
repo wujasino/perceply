@@ -23,6 +23,7 @@ const Privacy        = lazy(() => import("./pages/Privacy"));
 const Terms          = lazy(() => import("./pages/Terms"));
 const NewsletterTerms = lazy(() => import("./pages/NewsletterTerms"));
 const Settings       = lazy(() => import("./pages/Settings"));
+const Reports        = lazy(() => import("./pages/Reports"));
 const Developers     = lazy(() => import("./pages/Developers"));
 const ApiDocs        = lazy(() => import("./pages/ApiDocs"));
 const NotFound       = lazy(() => import("./pages/NotFound"));
@@ -95,6 +96,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppShell><Settings /></AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <AppShell><Reports /></AppShell>
                 </ProtectedRoute>
               }
             />
