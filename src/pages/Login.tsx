@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/lib/locale';
-import { Eye, EyeOff, ArrowRight, Zap, BarChart3, Shield, Loader2, ArrowLeft, Mail, KeyRound } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Zap, BarChart3, Shield, Loader2, ArrowLeft, Mail, KeyRound, CheckCircle2, Circle, Lock, Sparkles } from 'lucide-react';
 import { getAuthUser, loginUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { FloatingPathsBackground } from '@/components/ui/floating-paths';
@@ -276,6 +276,7 @@ const Login = () => {
       const { error: verifyErr } = await supabase.auth.mfa.verify({ factorId: totpFactorId, challengeId: challengeData.id, code: totpCode });
       if (verifyErr) throw verifyErr;
       navigate(from, { replace: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError('Invalid code. Check your app and try again.');
       setTotpCode('');
@@ -357,6 +358,9 @@ const Login = () => {
             {mode === 'login' && (
               <motion.div key="login" custom={dir} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.25, ease: 'easeOut' }} className="space-y-6">
                 <div>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary mb-2">
+                    <span className="text-base leading-none" aria-hidden>👋</span> Welcome back
+                  </span>
                   <h1 className="text-2xl font-display text-foreground">{t('login')}</h1>
                   <p className="text-sm text-muted-foreground mt-1">{t('login_subtitle')}</p>
                 </div>
@@ -377,7 +381,10 @@ const Login = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('email')}</Label>
-                    <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="jan@firma.pl" required autoComplete="email" className="h-10" />
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" required autoComplete="email" className="h-11 pl-10" />
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
@@ -388,7 +395,8 @@ const Login = () => {
                       </button>
                     </div>
                     <div className="relative">
-                      <Input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" className="h-10 pr-10" />
+                      <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      <Input type={showPwd ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Your password" required autoComplete="current-password" className="h-11 pl-10 pr-10" />
                       <button type="button" onClick={() => setShowPwd(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" tabIndex={-1} aria-label={showPwd ? 'Hide password' : 'Show password'}>
                         {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -400,7 +408,7 @@ const Login = () => {
                     <Label htmlFor="remember" className="!mb-0 text-sm text-muted-foreground cursor-pointer">{t('remember')}</Label>
                   </div>
 
-                  <Button type="submit" className="w-full h-10 gap-2" disabled={loading}>
+                  <Button type="submit" className="w-full h-11 gap-2" disabled={loading}>
                     {loading ? (
                       <span className="flex items-center gap-2">
                         <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -409,6 +417,10 @@ const Login = () => {
                     ) : <>{t('submit')}<ArrowRight className="w-3.5 h-3.5" /></>}
                   </Button>
                 </form>
+
+                <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/70">
+                  <Lock className="w-3 h-3" /> Secured with 256-bit encryption
+                </p>
 
                 <p className="text-center text-sm text-muted-foreground">
                   {t('noAccount')}{' '}
@@ -485,7 +497,7 @@ const Login = () => {
                 </form>
 
                 <p className="text-xs text-muted-foreground text-center">
-                  Kod wygasa za 10 minut ·{' '}
+                  Code expires in 10 minutes ·{' '}
                   <button type="button" onClick={() => handleForgotPassword({ preventDefault: () => {} } as React.FormEvent)} className="text-primary hover:underline">
                     Resend
                   </button>

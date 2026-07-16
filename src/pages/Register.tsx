@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/lib/locale';
-import { Eye, EyeOff, ArrowRight, CheckCircle2, Circle, Mail, ArrowLeft, KeyRound, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, CheckCircle2, Circle, Mail, ArrowLeft, KeyRound, Loader2, Lock, Sparkles } from 'lucide-react';
 import { registerUser } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { FloatingPathsBackground } from '@/components/ui/floating-paths';
@@ -226,8 +226,8 @@ const Register = () => {
               Free start
             </span>
             <h2 className="text-3xl font-display leading-snug text-foreground">
-              3 analizy gratis —<br />
-              <span className="text-primary">bez karty kredytowej</span>
+              3 free analyses —<br />
+              <span className="text-primary">no credit card needed</span>
             </h2>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
               Join hundreds of brands that already know how AI models describe and recommend them.
@@ -278,6 +278,9 @@ const Register = () => {
           </div>
 
           <div>
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary mb-2">
+              <Sparkles className="w-3.5 h-3.5" /> Free to start
+            </span>
             <h1 className="text-2xl font-display text-foreground">{t('register')}</h1>
             <p className="text-sm text-muted-foreground mt-1">{t('register_subtitle')}</p>
           </div>
@@ -297,44 +300,38 @@ const Register = () => {
             )}
           </AnimatePresence>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[hsl(var(--glass-border))]" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-background px-3 text-[11px] text-muted-foreground uppercase tracking-widest">
-                {t('or')}
-              </span>
-            </div>
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('email')}</Label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jan@firma.pl"
-                required
-                autoComplete="email"
-                className="h-10"
-              />
+              <div className="relative">
+                <Mail className="w-4 h-4 text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@company.com"
+                  required
+                  autoComplete="email"
+                  className="h-11 pl-10"
+                />
+              </div>
             </div>
 
             {/* Password */}
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('password')}</Label>
               <div className="relative">
+                <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <Input
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Create a password"
                   required
                   autoComplete="new-password"
-                  className="h-10 pr-10"
+                  className="h-11 pl-10 pr-10"
                 />
                 <button
                   type="button"
@@ -379,14 +376,16 @@ const Register = () => {
             <div className="space-y-1.5">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('confirmPassword')}</Label>
               <div className="relative">
+                <Lock className="w-4 h-4 text-muted-foreground/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <Input
                   type={showCfm ? 'text' : 'password'}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
+                  placeholder="Repeat your password"
                   required
                   autoComplete="new-password"
                   className={cn(
-                    'h-10 pr-10 transition-colors',
+                    'h-11 pl-10 pr-10 transition-colors',
                     pwdMismatch && 'border-red-500/60 focus-visible:ring-red-500/20',
                     pwdMatch && 'border-emerald-500/60 focus-visible:ring-emerald-500/20',
                   )}
@@ -412,13 +411,13 @@ const Register = () => {
 
             <Button
               type="submit"
-              className="w-full h-10 gap-2"
+              className="w-full h-11 gap-2"
               disabled={!email || !password || !confirm || pwdMismatch || loading}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Rejestracja...
+                  Creating account...
                 </span>
               ) : (
                 <>
@@ -427,6 +426,10 @@ const Register = () => {
                 </>
               )}
             </Button>
+
+            <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/70">
+              <Lock className="w-3 h-3" /> Your data is encrypted and never shared
+            </p>
           </form>
 
           {/* Legal */}
