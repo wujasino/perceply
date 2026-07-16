@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslation } from '@/lib/locale';
 import { Eye, EyeOff, ArrowRight, Zap, BarChart3, Shield, Loader2, ArrowLeft, Mail, KeyRound } from 'lucide-react';
 import { getAuthUser, loginUser } from '@/lib/auth';
+import { FleshplyLogo } from '@/components/brand/FleshplyLogo';
 import { supabase } from '@/lib/supabase';
 import { FloatingPathsBackground } from '@/components/ui/floating-paths';
 
@@ -291,8 +292,8 @@ const Login = () => {
         position={0.8}
         className="hidden lg:flex lg:w-[46%] xl:w-[42%] flex-col justify-between p-10 border-r border-[hsl(var(--glass-border))] bg-card/30"
       >
-        <Link to="/" className="flex items-center w-fit">
-          <img src="/landing-page-logo.png" alt="Perceply" height="28" className="h-7" />
+        <Link to="/" className="flex items-center w-fit" aria-label="fleshply">
+          <FleshplyLogo size={28} textClassName="text-lg" />
         </Link>
 
         <div className="space-y-8">
@@ -339,8 +340,8 @@ const Login = () => {
         <div className="w-full max-w-[400px]">
           {/* Top bar: mobile logo + back button */}
           <div className="flex items-center justify-between mb-6 lg:mb-4">
-            <Link to="/" className="lg:hidden flex items-center">
-              <img src="/landing-page-logo.png" alt="Perceply" className="h-6" />
+            <Link to="/" className="lg:hidden flex items-center" aria-label="fleshply">
+              <FleshplyLogo size={24} textClassName="text-base" />
             </Link>
             <Link
               to="/"

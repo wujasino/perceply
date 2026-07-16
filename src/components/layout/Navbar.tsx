@@ -13,6 +13,7 @@ import {
   NavigationMenuViewport,
 } from '@/components/ui/navigation-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { FleshplyLogo } from '@/components/brand/FleshplyLogo';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 
@@ -186,9 +187,9 @@ export const Navbar = () => {
               </PopoverContent>
             </Popover>
 
-            {/* Wordmark + what-it-does descriptor */}
-            <Link to="/" aria-label="Perceply — AI brand visibility" className="flex items-center gap-2 shrink-0">
-              <span className="text-lg font-display font-semibold text-foreground tracking-tight">Perceply</span>
+            {/* Logo + what-it-does descriptor */}
+            <Link to="/" aria-label="fleshply — AI brand visibility" className="flex items-center gap-2 shrink-0">
+              <FleshplyLogo size={26} textClassName="text-lg" />
               <span className="hidden sm:inline-flex items-center leading-none pl-2 border-l border-[hsl(var(--glass-border))] text-[10px] font-data uppercase tracking-[0.18em] text-muted-foreground">
                 AI Visibility
               </span>
