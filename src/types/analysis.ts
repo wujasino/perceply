@@ -14,6 +14,8 @@ export interface AnalysisResult {
   sentimentTrend: { date: string; score: number }[];
   sourceBreakdown: { name: string; value: number; color: string }[];
   status: 'brewing' | 'completed' | 'failed';
+  /** Model-written narrative verdict; falls back to canned locale copy when absent. */
+  verdict?: string;
 }
 
 export interface SourceResult {

@@ -255,7 +255,10 @@ export function useBrewing() {
         sources: ensureSources(sourcesData),
         sentimentTrend: sentimentTrendData,
         sourceBreakdown: sourceBreakdownData,
-        status: 'completed'
+        status: 'completed',
+        verdict: typeof data.verdict === 'string' && data.verdict.trim()
+          ? data.verdict.trim().slice(0, 600)
+          : undefined
       };
 
       // Zapisz do Supabase

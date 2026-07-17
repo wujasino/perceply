@@ -180,12 +180,12 @@ ${brandContext || '(no stored knowledge for this brand)'}
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-5',
-            max_tokens: 1000,
+            model: 'claude-fable-5',
+            max_tokens: 1200,
             system: systemPrompt,
             messages: [{
               role: 'user',
-              content: `Analyze this website or brand: ${target}. Use the brand_context above when relevant. Rate it from 0-100 on these 5 dimensions (authority, sentiment, recency, mentions, accuracy) and provide a trustScore. Respond ONLY with a raw JSON object, no markdown, no backticks, just JSON.`
+              content: `Analyze this website or brand: ${target}. Use the brand_context above when relevant. Rate it from 0-100 on these 5 dimensions (authority, sentiment, recency, mentions, accuracy) and provide a trustScore. Also write a "verdict": 2-3 plain-English sentences addressed to the brand owner ("you") telling the story of how AI models currently see this brand — specific, vivid, no jargon, no hedging; name the strongest signal and the one thing costing them recommendations. Respond ONLY with a raw JSON object, no markdown, no backticks, just JSON.`
             }]
           })
         });

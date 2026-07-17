@@ -139,12 +139,17 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
     const lines = [
       `Report for brand ${result.brandName}.`,
       `AI trust score: ${score} percent.`,
+    ];
+    // Lead with the narrative verdict when the model wrote one — it tells
+    // the story; the numbers below are supporting detail.
+    if (result.verdict) lines.push(result.verdict);
+    lines.push(
       `Strongest dimension: ${strongest[0]}, ${Math.round(strongest[1])} percent.`,
       `Weakest dimension: ${weakest[0]}, ${Math.round(weakest[1])} percent.`,
       `Average model confidence: ${avgConfidence} percent.`,
       `Positive sentiment: ${positiveRatio} percent.`,
-    ];
-    if (score < 60) lines.push('Note: AI recommends your competitors instead of you. Your brand is invisible in language model results.');
+    );
+    if (!result.verdict && score < 60) lines.push('Note: AI recommends your competitors instead of you. Your brand is invisible in language model results.');
     return lines.join(' ');
   };
 
@@ -215,7 +220,7 @@ const ScoreHero = ({ result, t }: { result: AnalysisResult; t: (k: string) => st
               {t('dashboard_verdict')}
             </div>
             <p className="text-sm sm:text-base text-foreground/90 leading-relaxed">
-              {t(getVerdictKey(score))}
+              {result.verdict || t(getVerdictKey(score))}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-4">
               <div>
