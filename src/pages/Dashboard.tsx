@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles, TrendingUp, TrendingDown, Activity, Layers, Target, RefreshCw, Search, Lock, FileDown, Swords, X, Volume2, Square, Loader2 } from 'lucide-react';
+import HomeHub from '@/components/home/HomeHub';
 import { useTranslation } from '@/lib/locale';
 import { BrewingProgress } from '@/components/BrewingState';
 import { RadarChartCard } from '@/components/charts/RadarChartCard';
@@ -319,6 +320,8 @@ const LiveSignal = ({ label }: { label: string }) => (
 const Dashboard = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const onScanRoute = location.pathname === '/brand-visibility';
   const t = useTranslation().t;
   const analysisId = searchParams.get('id');
   const brandFromUrl = searchParams.get('brand') || '';
@@ -409,6 +412,8 @@ const Dashboard = () => {
   };
 
   if (isIdle) {
+    // On Home, show a tool hub; the scanner lives in its own Tools section.
+    if (!onScanRoute) return <HomeHub />;
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <div className="flex-1 flex justify-center px-4 pt-16 sm:pt-24">
