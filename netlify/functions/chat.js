@@ -225,7 +225,15 @@ Other guidelines:
 
 /* ── Anthropic tool-use loop ─────────────────────────────────────────── */
 
-const callAnthropic = (messages) => fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+// Client model ids → concrete Anthropic model. Non-Anthropic selections
+// fall back to the default (their providers aren't wired yet).
+const MODEL_MAP = {
+  'claude-sonnet-4-5': 'claude-sonnet-4-5',
+  'claude-haiku-4-5': 'claude-haiku-4-5-20251001',
+};
+const resolveModel = (m) => MODEL_MAP[m] || 'claude-sonnet-4-5';
+
+const callAnthropic = (messages, modelId) => fetchWithTimeout('https://api.anthropic.com/v1/messages', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -233,7 +241,7 @@ const callAnthropic = (messages) => fetchWithTimeout('https://api.anthropic.com/
     'anthropic-version': '2023-06-01',
   },
   body: JSON.stringify({
-    model: 'claude-sonnet-4-5',
+    model: modelId || 'claude-sonnet-4-5',
     max_tokens: 1024,
     system: SYSTEM_PROMPT,
     tools: TOOLS,
@@ -312,6 +320,7 @@ export const handler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const incoming = Array.isArray(body.messages) ? body.messages : [];
+    const modelId = resolveModel(body.model);
 
     // Normalize client history into Anthropic message format (string content).
     const messages = incoming
@@ -331,7 +340,7 @@ export const handler = async (event) => {
 
     let finalText = '';
     for (let i = 0; i < MAX_TOOL_ITERATIONS; i++) {
-      const res = await callAnthropic(messages);
+      const res = await callAnthropic(messages, modelId);
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
         console.warn('Anthropic error', res.status, errBody.slice(0, 200));
