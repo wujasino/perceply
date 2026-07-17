@@ -1,6 +1,6 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { LogOut, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot, PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
+import { LogOut, Settings, User, Code2, CreditCard, MessageSquare, Send, X, Bot, PanelLeftClose, PanelLeftOpen, Menu, Megaphone } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,14 +29,15 @@ const DropdownLink = ({ to, icon: Icon, label, onClick }: { to: string; icon: Re
 );
 
 const SECTION_TITLES: Record<string, string> = {
-  '/dashboard':  'Home',
+  '/dashboard':  '',            // Home already reads as sidebar item + page heading
   '/brand-visibility': 'Brand Scan',
   '/automations': 'Automations',
   '/pricing':    'Pricing',
-  '/reports':    'Raporty',
+  '/reports':    'Reports',
   '/profile':    'Profile',
   '/settings':   'Settings',
   '/developers': 'Developers',
+  '/changelog':  "What's new",
 };
 
 interface AppNavbarProps {
@@ -137,6 +138,7 @@ export const AppNavbar = ({ collapsed = false, onToggle, onMobileToggle, chatOpe
           <button
             className="hidden sm:flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0"
             aria-label="Feedback"
+            title="Send feedback"
           >
             <MessageSquare className="w-4 h-4" />
           </button>
@@ -168,6 +170,17 @@ export const AppNavbar = ({ collapsed = false, onToggle, onMobileToggle, chatOpe
         </PopoverContent>
       </Popover>
 
+      {/* What's new */}
+      <Link
+        to="/changelog"
+        className="hidden sm:flex relative items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors shrink-0"
+        aria-label="What's new"
+        title="What's new"
+      >
+        <Megaphone className="w-4 h-4" />
+        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
+      </Link>
+
       {/* AI Chat toggle */}
       <button
         onClick={onChatToggle}
@@ -175,7 +188,8 @@ export const AppNavbar = ({ collapsed = false, onToggle, onMobileToggle, chatOpe
           'flex items-center justify-center w-8 h-8 rounded-lg transition-colors shrink-0',
           chatOpen ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
         )}
-        aria-label="AI Chat"
+        aria-label="AI Assistant — ask a question"
+        title="AI Assistant"
       >
         <Bot className="w-4 h-4" />
       </button>

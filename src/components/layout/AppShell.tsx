@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { AppNavbar } from './AppNavbar';
 import { AiChatSidebar } from './AiChatSidebar';
+import { CommandPalette } from '@/components/CommandPalette';
 import { cn } from '@/lib/utils';
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
@@ -40,6 +41,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <AiChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} />
+      <CommandPalette />
     </div>
   );
 };

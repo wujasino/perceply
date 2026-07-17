@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, Code2, Zap, Users, FileText, Bot, Search } from 'lucide-react';
+import { Home, Code2, Zap, FileText, Bot, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -120,31 +120,13 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
 
           <NavItem to="/brand-visibility" icon={Search} label="Brand Scan" active={pathname === '/brand-visibility'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
           <NavItem to="/automations" icon={Bot} label="Automations" active={pathname === '/automations'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
-          <NavItem to="/reports" icon={FileText} label="Raporty" active={pathname === '/reports'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
+          <NavItem to="/reports" icon={FileText} label="Reports" active={pathname === '/reports'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
         </nav>
 
         {/* Bottom */}
         <div className={cn('p-3 border-t border-border space-y-1', effectiveCollapsed && 'flex flex-col items-center')}>
           {/* Developers link */}
           <NavItem to="/developers" icon={Code2} label="Developers" badge="Dev" active={pathname === '/developers'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
-
-          {/* Invite card — hidden when collapsed */}
-          {!effectiveCollapsed && (
-            <div className="p-3 rounded-xl bg-muted border border-border mb-2">
-              <div className="flex items-center gap-2 mb-0.5">
-                <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-foreground">Invite friends</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mb-2">Share Perceply with your team</p>
-              <Link
-                to="/pricing"
-                onClick={handleNavigate}
-                className="block w-full text-center text-xs py-1.5 px-3 rounded-lg bg-background border border-border text-muted-foreground hover:bg-accent transition-colors"
-              >
-                Send invite
-              </Link>
-            </div>
-          )}
 
           {/* Subscription / Upgrade CTA — the single entry point to plans */}
           <Link
