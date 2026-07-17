@@ -1,7 +1,7 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight, Bot, Globe, Repeat, Star, Quote, ShieldCheck, Clock, Search, PenLine, Share2, Sparkles, Check, Layers, MessageSquare } from 'lucide-react';
+import { Zap, Eye, BarChart3, Shield, ChevronDown, HelpCircle, Mail, TrendingUp, ArrowRight, Bot, Globe, Repeat, Star, Quote, ShieldCheck, Clock, Search, PenLine, Share2, Sparkles, Check, Layers, MessageSquare, X } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -203,6 +203,182 @@ const Landing = () => {
                 <ChevronDown className="w-4 h-4" />
               </motion.div>
             </motion.button>
+          </div>
+        </section>
+
+        {/* ── Manifest: dlaczego to robimy ──────────────────────────── */}
+        <section id="manifest" className="py-24 px-4 scroll-mt-24">
+          <div className="max-w-3xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-10">
+              <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-5 font-data uppercase tracking-wider">
+                Manifesto — why we do this
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground leading-[1.15] mb-6">
+                AI answers the way it was taught to see the world.{' '}
+                <span className="text-primary">And that world is uneven.</span>
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                Big, English-language brands have years of content, thousands of mentions, and a place in every model's training data. Smaller brands — especially outside the US and UK — often have no voice at all in AI answers. Even when they're the best choice for the customer.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card p-7">
+                <h3 className="text-lg font-semibold text-foreground mb-3">The problem</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  When someone asks AI for a product or service recommendation, the model answers with what it “knows” best — and it knows best whatever there was most of in its training data. Usually: big brands, lots of English content, lots of links from Western media.
+                </p>
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  It's not a conspiracy or malice. It's statistics. But the result is the same: a recommendation you never got, because the model didn't know you existed.
+                </p>
+              </motion.div>
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="glass-card p-7">
+                <h3 className="text-lg font-semibold text-foreground mb-3">What's changing</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  Search showed ten links and let the customer choose. AI gives one answer and moves on.
+                </p>
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  When ten results collapse into one recommendation, “being on page two” stops existing. You're in the answer, or you're nowhere.
+                </p>
+              </motion.div>
+            </div>
+
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-12">
+              <h3 className="text-xs font-data uppercase tracking-wider text-muted-foreground mb-5">What we believe</h3>
+              <div className="space-y-3">
+                {[
+                  ['AI visibility isn\'t SEO 2.0.', 'It\'s a different game, with different rules — and tools built for the old model won\'t measure it.'],
+                  ['You can\'t improve what you can\'t see.', 'Before anyone sells you “AI optimization”, you need to know how you look today — raw, without a pretty chart on top.'],
+                  ['Data without proof is marketing, not measurement.', 'That\'s why every number here can be broken down to the raw model response.'],
+                  ['A smaller brand isn\'t a worse brand.', 'It\'s a brand the model doesn\'t know yet. Those two get confused constantly — and that\'s the problem that brought us here.'],
+                  ['We say it straight, even when it\'s uncomfortable.', 'If your brand is invisible, we\'ll say so on the first screen, not in a footnote.'],
+                ].map(([lead, rest]) => (
+                  <div key={lead} className="rounded-xl border-l-2 border-primary/50 bg-card/40 pl-4 pr-4 py-3">
+                    <p className="text-sm leading-relaxed">
+                      <span className="font-semibold text-foreground">{lead}</span>{' '}
+                      <span className="text-muted-foreground">{rest}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 p-7 mb-10">
+              <h3 className="text-xs font-data uppercase tracking-wider text-muted-foreground mb-3">Who's behind this</h3>
+              <p className="text-base text-foreground/90 leading-relaxed">
+                Perceply isn't built inside a corporation with a Series A round. It's built solo, after hours, with decisions made in the open. We show our methodology because we'd want to see it ourselves before paying for anything.
+              </p>
+            </motion.div>
+
+            <div className="text-center">
+              <button
+                onClick={() => document.getElementById('hero-input')?.scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                See how AI sees your brand
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Metodologia: jak to liczymy ───────────────────────────── */}
+        <section id="methodology" className="py-24 px-4 scroll-mt-24 border-t border-[hsl(var(--glass-border))]">
+          <div className="max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-14">
+              <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
+                Methodology — how we measure it
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground leading-[1.15] mb-4 max-w-3xl mx-auto">
+                No black box. You see every query, every answer, every number.
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto">
+                Other tools show you a score. We show you the proof. Every metric in Perceply traces straight back to the queries that produced it — check for yourself instead of taking our word for it.
+              </p>
+            </motion.div>
+
+            {/* Blok 1 — 3 kroki */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+              {[
+                { title: 'We build queries like a real user', desc: 'We don\'t ask AI “what do you think of brand X”. We recreate the natural questions your customer asks when looking for a solution in your category — from your angle and your competitors\'.' },
+                { title: 'We ask them in ChatGPT, Claude and Gemini', desc: 'The same queries, repeatedly, at regular intervals — to capture the real picture, not a random one-shot result.' },
+                { title: 'We show you the raw answers, not just a number', desc: 'Every metric in the dashboard expands so you can see exactly what the model answered and why your brand showed up in it — or didn\'t.' },
+              ].map((step, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="glass-card p-6 flex flex-col gap-3"
+                >
+                  <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-display shadow-lg shadow-primary/20 shrink-0">
+                    {i + 1}
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground leading-snug">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Blok 2 + Blok 3 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card p-7">
+                <h3 className="text-lg font-semibold text-foreground mb-4">What you actually see</h3>
+                <ul className="space-y-2.5">
+                  {[
+                    'The full text of every test query',
+                    'The raw model answer, without our interpretation',
+                    'Where your brand appears in the answer, and the context it appears in',
+                    'The difference between a mention and a cited source',
+                    'The history of changes over time — not just a single-day snapshot',
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-foreground/90">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }} className="glass-card p-7">
+                <h3 className="text-lg font-semibold text-foreground mb-4">What we don't do</h3>
+                <ul className="space-y-3.5">
+                  {[
+                    ['We don\'t guess.', 'If the model didn\'t name your brand, we say so plainly instead of hunting for a “partial match”.'],
+                    ['We don\'t average into one magic number.', 'Visibility in ChatGPT and in Gemini are two different things, and we show them separately.'],
+                    ['We don\'t promise AI ranking.', 'No one can do that honestly today. We measure the state and show the changes — the decisions are yours.'],
+                  ].map(([lead, rest]) => (
+                    <li key={lead} className="flex items-start gap-2.5 text-sm">
+                      <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      <span><span className="font-semibold text-foreground">{lead}</span>{' '}<span className="text-muted-foreground">{rest}</span></span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </div>
+
+            {/* Blok 4 — dlaczego to ważne */}
+            <motion.blockquote
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="border-l-2 border-primary pl-5 py-1 mb-10 max-w-2xl mx-auto"
+            >
+              <p className="text-lg text-foreground/90 leading-relaxed italic">
+                A visibility score without proof is just a number you have to trust. We'd rather you didn't have to — see the source of every metric with your own eyes.
+              </p>
+            </motion.blockquote>
+
+            <div className="text-center">
+              <button
+                onClick={() => document.getElementById('sample-report')?.scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                See a sample report
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1077,67 +1253,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── Methodology ───────────────────────────────────────────── */}
-      <section id="methodology" className="py-24 px-4 border-t border-[hsl(var(--glass-border))]">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="inline-block px-3 py-1 text-xs badge rounded-lg mb-4 font-data uppercase tracking-wider">
-              Methodology
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-              How Perceply measures AI visibility
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Transparent, reproducible measurement — so every score can be traced back to real AI responses.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                icon: Bot,
-                title: 'Multi-model querying',
-                desc: 'We query ChatGPT, Claude and Gemini through their official APIs with category-level prompts your customers actually ask.',
-              },
-              {
-                icon: BarChart3,
-                title: 'AI Share of Voice',
-                desc: 'We measure how often your brand appears in AI answers versus competitors — mention rate, ranking position and recommendation strength.',
-              },
-              {
-                icon: Eye,
-                title: 'Sentiment & context analysis',
-                desc: 'Every mention is scored for sentiment and factual accuracy, so you know not just if AI talks about you, but how.',
-              },
-              {
-                icon: TrendingUp,
-                title: 'Score 0–100',
-                desc: 'All signals combine into a single visibility score you can track over time and benchmark against your category.',
-              },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="glass-card p-6 flex flex-col gap-3"
-              >
-                <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10">
-                  <item.icon className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── FAQ ───────────────────────────────────────────────────── */}
       <section id="faq" className="py-20 px-4">

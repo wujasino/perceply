@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Home, CreditCard, Code2, Zap, Users, FileText, Bot, Search } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { Home, Code2, Zap, Users, FileText, Bot, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Wordmark } from '@/components/Wordmark';
 
 interface NavItemProps {
   to: string;
@@ -53,9 +53,7 @@ interface SidebarProps {
 export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }: SidebarProps) => {
   const { pathname } = useLocation();
   const [plan, setPlan] = useState('Free');
-  const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const logoSrc = theme === 'dark' ? '/perceply-logo-cream.png' : '/perceply-logo.png';
 
   // On mobile the sidebar is a full drawer — never render icon-only mode
   const effectiveCollapsed = isMobile ? false : collapsed;
@@ -91,13 +89,12 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
         {/* Logo */}
         <div className={cn('flex items-center p-4 pb-4', effectiveCollapsed ? 'justify-center' : 'justify-start')}>
           {!effectiveCollapsed ? (
-            <Link to="/dashboard" onClick={handleNavigate} className="flex items-center gap-2">
-              <img src={logoSrc} alt="Perceply" className="h-6 w-auto" />
-              <span className="text-base font-display font-semibold text-foreground tracking-tight">Perceply</span>
+            <Link to="/dashboard" onClick={handleNavigate} className="flex items-center">
+              <Wordmark className="text-lg" />
             </Link>
           ) : (
             <Link to="/dashboard" onClick={handleNavigate} aria-label="Perceply">
-              <img src={logoSrc} alt="Perceply" className="h-5 w-auto" />
+              <span className="font-display font-semibold text-lg text-foreground">P</span>
             </Link>
           )}
         </div>
@@ -124,7 +121,6 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
           <NavItem to="/brand-visibility" icon={Search} label="Brand Scan" active={pathname === '/brand-visibility'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
           <NavItem to="/automations" icon={Bot} label="Automations" active={pathname === '/automations'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
           <NavItem to="/reports" icon={FileText} label="Raporty" active={pathname === '/reports'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
-          <NavItem to="/pricing" icon={CreditCard} label="Pricing" active={pathname === '/pricing'} collapsed={effectiveCollapsed} onNavigate={handleNavigate} />
         </nav>
 
         {/* Bottom */}
@@ -150,21 +146,19 @@ export const Sidebar = ({ collapsed = false, mobileOpen = false, onMobileClose }
             </div>
           )}
 
-          {/* Upgrade CTA */}
-          {plan === 'Free' && (
-            <Link
-              to="/pricing"
-              onClick={handleNavigate}
-              title={effectiveCollapsed ? 'Upgrade plan' : undefined}
-              className={cn(
-                'flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors',
-                effectiveCollapsed && 'w-8 h-8 p-0 rounded-lg'
-              )}
-            >
-              <Zap className="w-4 h-4 shrink-0" />
-              {!effectiveCollapsed && 'Upgrade plan'}
-            </Link>
-          )}
+          {/* Subscription / Upgrade CTA — the single entry point to plans */}
+          <Link
+            to="/pricing"
+            onClick={handleNavigate}
+            title={effectiveCollapsed ? 'Subscription' : undefined}
+            className={cn(
+              'flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors',
+              effectiveCollapsed && 'w-8 h-8 p-0 rounded-lg'
+            )}
+          >
+            <Zap className="w-4 h-4 shrink-0" />
+            {!effectiveCollapsed && (plan === 'Free' ? 'Upgrade — Subscription' : 'Subscription')}
+          </Link>
         </div>
       </aside>
     </>
