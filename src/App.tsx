@@ -16,6 +16,7 @@ const AppShell = lazy(() =>
 const Landing        = lazy(() => import("./pages/Landing"));
 const Dashboard      = lazy(() => import("./pages/Dashboard"));
 const Automations    = lazy(() => import("./pages/Automations"));
+const Changelog      = lazy(() => import("./pages/Changelog"));
 const Pricing        = lazy(() => import("./pages/Pricing"));
 const Profile        = lazy(() => import("./pages/Profile"));
 const Login          = lazy(() => import("./pages/Login"));
@@ -46,6 +47,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/dashboard':  'Dashboard | Perceply',
   '/brand-visibility': 'Brand Scan | Perceply',
   '/automations':'Automations | Perceply',
+  '/changelog':  "What's new | Perceply",
   '/pricing':    'Pricing | Perceply',
   '/profile':    'Profile | Perceply',
   '/settings':   'Settings | Perceply',
@@ -86,6 +88,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppShell><Automations /></AppShell>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/changelog"
+              element={
+                <ProtectedRoute>
+                  <AppShell><Changelog /></AppShell>
                 </ProtectedRoute>
               }
             />

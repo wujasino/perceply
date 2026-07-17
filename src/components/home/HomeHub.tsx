@@ -1,193 +1,319 @@
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Bot, FileText, ArrowRight, Sparkles, Megaphone, HelpCircle, Mail, Zap } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { FAQ_EN } from '@/lib/faq';
+import {
+  Search, Bot, FileText, ArrowRight, ArrowUpRight, ArrowUp, ArrowDown,
+  Lock, Loader2, Sparkles, CalendarClock,
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { cn } from '@/lib/utils';
 
-/* Quick-launch tools. */
-const TOOLS = [
-  { to: '/brand-visibility', icon: Search, title: 'Brand Scan', desc: 'See how AI models describe and recommend your brand.' },
-  { to: '/automations',      icon: Bot,    title: 'Automations', desc: 'Set up monitoring and alerts by chat — no forms.' },
-  { to: '/reports',          icon: FileText, title: 'Reports', desc: 'Revisit past analyses and track changes over time.' },
-];
+interface Analysis {
+  id: string;
+  brand_name: string;
+  trust_score: number;
+  authority: number;
+  sentiment: number;
+  recency: number;
+  mentions: number;
+  accuracy: number;
+  created_at: string;
+}
 
-/* What's new — product updates surfaced on home. */
-type Tag = 'New' | 'Improved' | 'Soon';
-const TAG_STYLES: Record<Tag, string> = {
-  New:      'bg-primary/15 text-primary border-primary/20',
-  Improved: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/20',
-  Soon:     'bg-muted text-muted-foreground border-[hsl(var(--glass-border))]',
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+
+const scoreColor = (s: number) =>
+  s >= 75 ? 'text-emerald-600 dark:text-emerald-400'
+    : s >= 50 ? 'text-amber-600 dark:text-amber-400'
+      : 'text-red-600 dark:text-red-400';
+
+/* ── Mini sparkline ─────────────────────────────────────────────────── */
+const Sparkline = ({ values }: { values: number[] }) => {
+  if (values.length < 2) return null;
+  const w = 120, h = 32, pad = 3;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return (
+    <svg width={w} height={h} className="overflow-visible" aria-hidden>
+      <polyline points={pts} fill="none" stroke="hsl(var(--primary))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 };
 
-const NEWS: { tag: Tag; date: string; title: string; desc: string; to?: string }[] = [
-  {
-    tag: 'New', date: 'Jul 2026',
-    title: 'Set up monitoring by chat',
-    desc: 'The new Automations tool configures brands, competitors, schedules and alerts from a conversation — you review and confirm before anything saves.',
-    to: '/automations',
-  },
-  {
-    tag: 'Improved', date: 'Jul 2026',
-    title: 'Brand Scan is now its own workspace',
-    desc: 'Scanning moved out of Home into a dedicated Tools section, so your home stays a clean launchpad.',
-    to: '/brand-visibility',
-  },
-  {
-    tag: 'New', date: 'Jun 2026',
-    title: 'Action plan on every scan',
-    desc: 'Each report now ends with a prioritized, plain-English list of what to publish and optimize to get recommended.',
-  },
-  {
-    tag: 'Soon', date: 'Coming soon',
-    title: 'Weekly digest emails',
-    desc: 'A short recap of how your AI visibility moved, delivered to your inbox every Monday.',
-  },
-];
+/* ── Delta pill (semantic colours: up = green, down = red) ──────────── */
+const Delta = ({ value }: { value: number | null }) => {
+  if (value === null) return <span className="text-xs text-muted-foreground">First scan</span>;
+  if (value === 0) return <span className="text-xs text-muted-foreground">No change</span>;
+  const up = value > 0;
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-0.5 text-xs font-semibold rounded-full px-2 py-0.5',
+      up ? 'text-emerald-700 bg-emerald-500/10 dark:text-emerald-400'
+         : 'text-red-700 bg-red-500/10 dark:text-red-400'
+    )}>
+      {up ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+      {Math.abs(value)} pts
+    </span>
+  );
+};
 
-export const HomeHub = () => (
-  <div className="min-h-screen bg-background">
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-      {/* Welcome */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-10"
-      >
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-[11px] font-medium text-primary mb-4 uppercase tracking-wider">
-          <Sparkles className="w-3 h-3" /> Your workspace
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-display text-foreground mb-2">Welcome to Perceply</h1>
-        <p className="text-muted-foreground text-sm max-w-xl">
-          Pick a tool to get started, catch up on what's new, or find an answer below.
-        </p>
-      </motion.div>
+const ACTIVE_MODELS = ['ChatGPT', 'Claude', 'Gemini'];
+const LOCKED_MODELS = ['Perplexity', 'Mistral', 'Llama 3'];
 
-      {/* Quick tools */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-14">
-        {TOOLS.map((tool, i) => (
-          <motion.div
-            key={tool.to}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.06 }}
+const HomeHub = () => {
+  const navigate = useNavigate();
+  const [scanInput, setScanInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { if (active) setLoading(false); return; }
+      const { data } = await supabase
+        .from('analyses')
+        .select('id, brand_name, trust_score, authority, sentiment, recency, mentions, accuracy, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (active) { setAnalyses((data as Analysis[]) ?? []); setLoading(false); }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const latest = analyses[0] ?? null;
+  const previous = analyses[1] ?? null;
+  const delta = latest && previous ? latest.trust_score - previous.trust_score : latest ? null : null;
+  const sparkValues = useMemo(
+    () => analyses.slice(0, 8).map(a => a.trust_score).reverse(),
+    [analyses]
+  );
+
+  const runScan = (raw: string) => {
+    const v = raw.trim();
+    if (!v) return;
+    navigate(`/brand-visibility?brand=${encodeURIComponent(v)}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+
+        {/* ── Hero scan input ─────────────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-display text-foreground mb-1">
+            How does AI describe your brand?
+          </h1>
+          <p className="text-sm text-muted-foreground mb-5">
+            Enter a brand or domain and run a fresh visibility scan.
+          </p>
+          <form
+            onSubmit={(e) => { e.preventDefault(); runScan(scanInput); }}
+            className="flex items-center gap-2 max-w-xl"
           >
-            <Link
-              to={tool.to}
-              className="group flex flex-col gap-3 p-5 rounded-2xl border border-[hsl(var(--glass-border))] bg-card/50 hover:border-primary/40 hover:bg-primary/5 transition-colors h-full"
-            >
-              <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10">
-                <tool.icon className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-1">
-                  {tool.title}
-                  <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
-                </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{tool.desc}</p>
-              </div>
-            </Link>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Two-column: What's new + FAQ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
-        {/* What's new */}
-        <section>
-          <div className="flex items-center gap-2 mb-5">
-            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-              <Megaphone className="w-4 h-4 text-primary" />
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                value={scanInput}
+                onChange={e => setScanInput(e.target.value)}
+                placeholder="yourbrand.com"
+                className="w-full h-11 rounded-xl border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground pl-10 pr-3 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
+              />
             </div>
-            <h2 className="text-lg font-display text-foreground">What's new</h2>
-          </div>
+            <button
+              type="submit"
+              disabled={!scanInput.trim()}
+              className="h-11 px-5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 whitespace-nowrap"
+            >
+              Run scan
+            </button>
+          </form>
+        </motion.div>
 
-          <div className="relative pl-5 space-y-5 before:absolute before:left-[7px] before:top-1.5 before:bottom-1.5 before:w-px before:bg-[hsl(var(--glass-border))]">
-            {NEWS.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="relative"
-              >
-                <span className="absolute -left-[18px] top-1.5 w-2 h-2 rounded-full bg-primary ring-4 ring-background" />
-                <div className="rounded-xl border border-[hsl(var(--glass-border))] bg-card/40 p-4">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide border ${TAG_STYLES[item.tag]}`}>
-                      {item.tag}
-                    </span>
-                    <span className="text-[11px] text-muted-foreground">{item.date}</span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-foreground mb-1">{item.title}</h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
-                  {item.to && (
-                    <Link to={item.to} className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
-                      Try it <ArrowRight className="w-3 h-3" />
-                    </Link>
-                  )}
-                </div>
-              </motion.div>
+        {/* ── State: loading / empty / populated ──────────────────── */}
+        {loading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-10">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="h-40 rounded-2xl border border-border bg-card/40 animate-pulse" />
             ))}
           </div>
-        </section>
-
-        {/* FAQ */}
-        <section>
-          <div className="flex items-center gap-2 mb-5">
-            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-              <HelpCircle className="w-4 h-4 text-primary" />
-            </div>
-            <h2 className="text-lg font-display text-foreground">Frequently asked</h2>
-          </div>
-
-          <div className="rounded-2xl border border-[hsl(var(--glass-border))] bg-card/40 divide-y divide-[hsl(var(--glass-border))] overflow-hidden">
-            <Accordion type="single" collapsible className="w-full">
-              {FAQ_EN.slice(0, 6).map((item, idx) => (
-                <AccordionItem key={idx} value={`q${idx}`} className="border-0 border-b border-[hsl(var(--glass-border))] last:border-b-0 px-5">
-                  <AccordionTrigger className="text-left text-sm font-medium text-foreground hover:no-underline py-4 [&>svg]:text-primary">
-                    {item.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-xs text-muted-foreground leading-relaxed pb-4">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </div>
-
-          {/* Help CTA */}
-          <div className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                <Mail className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground leading-tight">Still stuck?</p>
-                <p className="text-xs text-muted-foreground truncate">We usually reply within a few hours.</p>
-              </div>
-            </div>
-            <a
-              href="mailto:kontakt@bitbrew.pl"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-opacity whitespace-nowrap"
+        ) : !latest ? (
+          <EmptyState onDemo={() => runScan('Nike')} />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-10">
+            {/* Score card — the reason people come back */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+              className="lg:col-span-2 rounded-2xl border border-border bg-card/60 p-6 flex flex-col"
             >
-              Contact <ArrowRight className="w-3 h-3" />
-            </a>
-          </div>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">AI visibility score</p>
+                  <p className="text-lg font-semibold text-foreground">{latest.brand_name}</p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarClock className="w-3.5 h-3.5" /> {formatDate(latest.created_at)}
+                </div>
+              </div>
+              <div className="flex items-end gap-4">
+                <span className={cn('text-5xl font-display font-semibold tabular-nums leading-none', scoreColor(latest.trust_score))}>
+                  {latest.trust_score}
+                </span>
+                <span className="text-lg text-muted-foreground mb-1">/100</span>
+                <div className="mb-1"><Delta value={delta} /></div>
+                <div className="ml-auto mb-0.5"><Sparkline values={sparkValues} /></div>
+              </div>
+              <Link
+                to={`/brand-visibility?id=${latest.id}`}
+                className="mt-5 inline-flex items-center gap-1 text-sm text-primary font-medium hover:gap-1.5 transition-all w-fit"
+              >
+                View full report <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </motion.div>
 
-          {/* Upgrade nudge */}
+            {/* Per-model breakdown + upsell */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+              className="rounded-2xl border border-border bg-card/60 p-6"
+            >
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">By AI model</p>
+              <div className="space-y-2.5">
+                {ACTIVE_MODELS.map((m, i) => {
+                  const conf = Math.max(20, Math.min(99, [latest.authority, latest.accuracy, latest.mentions][i] ?? latest.trust_score));
+                  return (
+                    <div key={m} className="flex items-center gap-3">
+                      <span className="text-sm text-foreground w-20 shrink-0">{m}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full bg-primary/70" style={{ width: `${conf}%` }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground w-7 text-right tabular-nums">{conf}</span>
+                    </div>
+                  );
+                })}
+                {LOCKED_MODELS.map(m => (
+                  <Link key={m} to="/pricing" className="flex items-center gap-3 group opacity-60 hover:opacity-100 transition-opacity">
+                    <span className="text-sm text-muted-foreground w-20 shrink-0">{m}</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden" />
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </Link>
+                ))}
+              </div>
+              <Link to="/pricing" className="mt-4 inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                Unlock all 6 models <ArrowRight className="w-3 h-3" />
+              </Link>
+            </motion.div>
+          </div>
+        )}
+
+        {/* ── Recent reports ──────────────────────────────────────── */}
+        {!loading && analyses.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-foreground">Recent reports</h2>
+              <Link to="/reports" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                View all <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-border bg-card/40 divide-y divide-border overflow-hidden">
+              {analyses.slice(0, 5).map((a, i) => {
+                const prev = analyses[i + 1];
+                const d = prev ? a.trust_score - prev.trust_score : null;
+                return (
+                  <Link
+                    key={a.id}
+                    to={`/brand-visibility?id=${a.id}`}
+                    className="flex items-center gap-4 px-4 py-3 hover:bg-accent/50 transition-colors group"
+                  >
+                    <span className={cn('text-lg font-display font-semibold tabular-nums w-10', scoreColor(a.trust_score))}>{a.trust_score}</span>
+                    <span className="text-sm text-foreground font-medium flex-1 min-w-0 truncate">{a.brand_name}</span>
+                    <Delta value={d} />
+                    <span className="hidden sm:block text-xs text-muted-foreground w-24 text-right">{formatDate(a.created_at)}</span>
+                    <ArrowUpRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Tools (Brand Scan primary, others secondary) ────────── */}
+        <div>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Tools</h2>
+
+          {/* Primary: Brand Scan */}
           <Link
-            to="/pricing"
-            className="mt-4 flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors"
+            to="/brand-visibility"
+            className="group block rounded-2xl border border-primary/30 bg-primary/[0.06] p-6 mb-4 cursor-pointer transition-all duration-200 hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10"
           >
-            <Zap className="w-3.5 h-3.5 text-primary" />
-            Unlock all 6 AI models and competitor tracking — see plans
-            <ArrowRight className="w-3 h-3" />
+            <div className="flex items-center gap-4">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/15 shrink-0">
+                <Search className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground flex items-center gap-1.5">Brand Scan</h3>
+                <p className="text-sm text-muted-foreground">See how ChatGPT, Claude and Gemini describe and recommend your brand.</p>
+              </div>
+              <ArrowRight className="w-5 h-5 text-primary shrink-0 transition-transform group-hover:translate-x-1" />
+            </div>
           </Link>
-        </section>
+
+          {/* Secondary: Automations + Reports */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              { to: '/automations', icon: Bot, title: 'Automations', desc: 'Monitoring and alerts by chat.' },
+              { to: '/reports', icon: FileText, title: 'Reports', desc: 'Past analyses and trends.' },
+            ].map(tool => (
+              <Link
+                key={tool.to}
+                to={tool.to}
+                className="group flex items-center gap-3 rounded-2xl border border-border bg-card/40 p-4 cursor-pointer transition-all duration-200 hover:border-primary/40 hover:-translate-y-0.5"
+              >
+                <div className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-muted shrink-0">
+                  <tool.icon className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">{tool.title}</h3>
+                  <p className="text-xs text-muted-foreground truncate">{tool.desc}</p>
+                </div>
+                <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  );
+};
+
+/* ── Empty state: one screen, one CTA, plus a demo ──────────────────── */
+const EmptyState = ({ onDemo }: { onDemo: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+    className="rounded-2xl border border-border bg-card/40 p-10 sm:p-14 text-center mb-10"
+  >
+    <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-5">
+      <Sparkles className="w-6 h-6 text-primary" />
+    </div>
+    <h2 className="text-xl sm:text-2xl font-display text-foreground mb-2">No scans yet</h2>
+    <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+      Run your first scan to see how AI models describe your brand — a visibility score, a per-model breakdown, and what to do next.
+    </p>
+    <button
+      onClick={onDemo}
+      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+    >
+      See a sample — Nike demo <ArrowRight className="w-4 h-4" />
+    </button>
+    <p className="text-xs text-muted-foreground/70 mt-3">or type your own brand in the box above</p>
+  </motion.div>
 );
 
 export default HomeHub;
+export { HomeHub };
