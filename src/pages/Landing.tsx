@@ -673,10 +673,10 @@ const Landing = () => {
               Comparison
             </span>
             <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-              Perceply vs. other tools
+              Perceply vs. other GEO tools
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Traditional tools monitor social media and search engines. Perceply monitors what AI says about your brand.
+              Every AI visibility tracker will show you a score. Here's what's actually different about how Perceply gets there.
             </p>
           </motion.div>
 
@@ -688,7 +688,7 @@ const Landing = () => {
                     <th className="text-left px-6 py-4 text-muted-foreground font-medium text-xs uppercase tracking-wider w-[35%]">Feature</th>
                     <th className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="text-xs text-muted-foreground/50">SEMrush / Brandwatch</span>
+                        <span className="text-xs text-muted-foreground/50">Typical GEO tracker</span>
                       </div>
                     </th>
                     <th className="px-6 py-4 text-center bg-primary/5 border-x border-primary/20">
@@ -701,16 +701,12 @@ const Landing = () => {
                 </thead>
                 <tbody>
                   {[
-                    { feature: 'Social media mention monitoring',     others: true,  bb: false },
-                    { feature: 'SEO / search engine ranking',         others: true,  bb: false },
-                    { feature: 'Visibility in ChatGPT / GPT-4o',     others: false, bb: true  },
-                    { feature: 'Visibility in Claude (Anthropic)',    others: false, bb: true  },
-                    { feature: 'Visibility in Gemini (Google)',       others: false, bb: true  },
-                    { feature: 'AI Visibility Score (0–100)',         others: false, bb: true  },
-                    { feature: 'AI sentiment analysis',               others: false, bb: true  },
-                    { feature: 'Competitor comparison in AI',         others: false, bb: true  },
-                    { feature: 'GEO recommendations',                 others: false, bb: true  },
-                    { feature: 'Starting price',                      others: '$99+/mo', bb: 'Free' },
+                    { feature: 'Visibility across ChatGPT, Claude, Gemini',    others: true,  bb: true  },
+                    { feature: 'AI Visibility Score (0–100)',                  others: true,  bb: true  },
+                    { feature: 'Raw model answers behind every metric',        others: false, bb: true  },
+                    { feature: 'Set up monitoring by chatting, not forms',     others: false, bb: true  },
+                    { feature: 'Competitor comparison in AI answers',          others: 'varies', bb: true  },
+                    { feature: 'Free plan with real usage (no trial only)',    others: 'varies', bb: true  },
                   ].map((row, i) => (
                     <tr key={i} className={`border-b border-[hsl(var(--glass-border))] last:border-0 ${i % 2 === 0 ? '' : 'bg-muted/10'}`}>
                       <td className="px-6 py-3.5 text-sm text-foreground">{row.feature}</td>
@@ -738,7 +734,7 @@ const Landing = () => {
               </table>
             </div>
             <p className="text-center text-xs text-muted-foreground/40 mt-4">
-              SEMrush and Brandwatch are great tools for traditional monitoring — Perceply complements them with the AI channel.
+              Most AI visibility trackers stop at a score. Perceply shows the raw query and answer behind every number, so you can verify it yourself.
             </p>
           </motion.div>
         </div>
