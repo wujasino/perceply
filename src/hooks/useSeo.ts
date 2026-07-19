@@ -52,6 +52,7 @@ export const SEO_CONFIG: Record<string, SeoConfig> = {
   '/developers':         { title: 'Developers | Perceply', description: 'Perceply developer tools.', noindex: true },
   '/reset-password':     { title: 'Reset Password | Perceply', description: 'Reset your Perceply password.', noindex: true },
   '/auth/confirm':       { title: 'Confirm Account | Perceply', description: 'Confirm your Perceply account.', noindex: true },
+  '/auth/google/callback': { title: 'Signing in… | Perceply', description: 'Completing Google sign-in.', noindex: true },
   '/onboarding':         { title: 'Onboarding | Perceply', description: 'Set up your Perceply account.', noindex: true },
 };
 

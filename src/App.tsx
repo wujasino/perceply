@@ -33,6 +33,7 @@ const NotFound       = lazy(() => import("./pages/NotFound"));
 const ResetPassword  = lazy(() => import("./pages/ResetPassword"));
 const AuthConfirm    = lazy(() => import("./pages/AuthConfirm"));
 const Onboarding     = lazy(() => import("./pages/Onboarding"));
+const GoogleCallback = lazy(() => import("./pages/GoogleCallback"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -126,6 +127,7 @@ const App = () => (
             <Route path="/docs/api" element={<ApiDocs />} />
             <Route path="/reset-password"        element={<ResetPassword />} />
             <Route path="/auth/confirm"          element={<AuthConfirm />} />
+            <Route path="/auth/google/callback"  element={<GoogleCallback />} />
             <Route path="/onboarding"            element={<Onboarding />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
