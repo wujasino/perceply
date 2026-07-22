@@ -13,6 +13,7 @@ import {
   NavigationMenuViewport,
 } from '@/components/ui/navigation-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Wordmark } from '@/components/Wordmark';
 import { supabase } from '@/lib/supabase';
 import { logout } from '@/lib/auth';
 
@@ -187,8 +188,8 @@ export const Navbar = () => {
             </Popover>
 
             {/* Wordmark + what-it-does descriptor */}
-            <Link to="/" aria-label="Perceply — AI brand visibility" className="flex items-center gap-2 shrink-0">
-              <span className="text-lg font-display font-semibold text-foreground tracking-tight">Perceply</span>
+            <Link to="/" aria-label="Presora — AI brand visibility" className="flex items-center gap-2 shrink-0">
+              <Wordmark className="text-lg" />
               <span className="hidden sm:inline-flex items-center leading-none pl-2 border-l border-[hsl(var(--glass-border))] text-[10px] font-data uppercase tracking-[0.18em] text-muted-foreground">
                 AI Visibility
               </span>

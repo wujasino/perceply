@@ -1,10 +1,98 @@
 -- ================================================================
--- BITBREW — PEŁNA MIGRACJA (idempotentna, bezpieczna do re-uruchomienia)
+-- PRESORA — PEŁNA MIGRACJA (idempotentna, bezpieczna do re-uruchomienia)
 -- Zawiera: tabele, RLS, triggery, funkcje RAG, webhook idempotency,
 --          atomowy increment kredytów, indeksy, storage avatarów.
+--
+-- Kolejność jest celowa: najpierw EXTENSIONS/TABELE (CREATE ... IF NOT
+-- EXISTS, więc no-op na środowiskach gdzie już istnieją), dopiero potem
+-- CLEANUP starych triggerów/polityk — inaczej DROP TRIGGER/POLICY ...
+-- ON public.<tabela> wywala się z "relation does not exist" na świeżej
+-- bazie (np. Supabase preview branch), bo IF EXISTS chroni tylko przed
+-- brakiem triggera/polityki, nie przed brakiem samej tabeli.
 -- ================================================================
 
--- ── 1. CLEANUP TRIGGERS & FUNCTIONS ─────────────────────────────
+-- ── 1. EXTENSIONS ────────────────────────────────────────────────
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- ── 2. TABELA PROFILES ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id                    UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  email                 TEXT,
+  full_name             TEXT,
+  avatar_url            TEXT,
+  plan                  TEXT DEFAULT 'free',
+  subscription_status   TEXT DEFAULT 'inactive',
+  analyses_this_month   INTEGER DEFAULT 0,
+  analyses_reset_at     TIMESTAMPTZ DEFAULT now(),
+  credits               INTEGER NOT NULL DEFAULT 0,
+  created_at            TIMESTAMPTZ DEFAULT now(),
+  updated_at            TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email               TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name           TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url          TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS plan                TEXT DEFAULT 'free';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS analyses_this_month INTEGER DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS analyses_reset_at   TIMESTAMPTZ DEFAULT now();
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS credits             INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at          TIMESTAMPTZ DEFAULT now();
+
+-- ── 3. TABELA ANALYSES ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.analyses (
+  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id    UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  brand_name TEXT NOT NULL,
+  score      INTEGER,
+  results    JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.analyses DROP CONSTRAINT IF EXISTS brand_name_length;
+ALTER TABLE public.analyses ADD CONSTRAINT brand_name_length CHECK (char_length(brand_name) <= 100);
+
+-- ── 4. TABELA BRAND KNOWLEDGE (RAG) ─────────────────────────────
+CREATE TABLE IF NOT EXISTS public.brand_knowledge (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  brand_name TEXT NOT NULL,
+  content    TEXT NOT NULL,
+  embedding  VECTOR(1024),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+DROP INDEX IF EXISTS brand_knowledge_embedding_idx;
+DROP INDEX IF EXISTS brand_knowledge_brand_idx;
+CREATE INDEX brand_knowledge_embedding_idx ON public.brand_knowledge USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX brand_knowledge_brand_idx     ON public.brand_knowledge (user_id, brand_name);
+
+-- ── 5. TABELA RECOVERY CODES ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.recovery_codes (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  code_hash  TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  used_at    TIMESTAMPTZ,
+  UNIQUE (user_id)
+);
+
+-- ── 6. TABELA NEWSLETTER ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.newsletter_subscribers (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email           TEXT NOT NULL UNIQUE,
+  subscribed_at   TIMESTAMPTZ DEFAULT now(),
+  unsubscribed_at TIMESTAMPTZ
+);
+
+-- ── 7. TABELA WEBHOOK EVENTS (idempotency Stripe) ────────────────
+CREATE TABLE IF NOT EXISTS public.webhook_events (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stripe_event_id TEXT NOT NULL UNIQUE,
+  processed_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ── 8. CLEANUP TRIGGERS & FUNCTIONS ──────────────────────────────
 DROP TRIGGER IF EXISTS on_auth_user_created       ON auth.users;
 DROP TRIGGER IF EXISTS enforce_analysis_limit     ON public.analyses;
 DROP TRIGGER IF EXISTS protect_plan_changes       ON public.profiles;
@@ -18,7 +106,7 @@ DROP FUNCTION IF EXISTS public.match_brand_knowledge(vector,  int, text);
 DROP FUNCTION IF EXISTS public.match_brand_knowledge(vector(1024), uuid, int, text);
 DROP FUNCTION IF EXISTS public.increment_credits(uuid, integer);
 
--- ── 2. CLEANUP POLICIES ──────────────────────────────────────────
+-- ── 9. CLEANUP POLICIES ──────────────────────────────────────────
 DROP POLICY IF EXISTS "Public profiles are viewable by everyone"     ON public.profiles;
 DROP POLICY IF EXISTS "Users can view own profile"                   ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile"                 ON public.profiles;
@@ -53,87 +141,6 @@ DROP POLICY IF EXISTS "Avatars are publicly accessible"              ON storage.
 DROP POLICY IF EXISTS "Public read avatars"                          ON storage.objects;
 DROP POLICY IF EXISTS "Give users access to own folder"              ON storage.objects;
 DROP POLICY IF EXISTS "Allow public read"                            ON storage.objects;
-
--- ── 3. EXTENSIONS ────────────────────────────────────────────────
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- ── 4. TABELA PROFILES ───────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id                    UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email                 TEXT,
-  full_name             TEXT,
-  avatar_url            TEXT,
-  plan                  TEXT DEFAULT 'free',
-  subscription_status   TEXT DEFAULT 'inactive',
-  analyses_this_month   INTEGER DEFAULT 0,
-  analyses_reset_at     TIMESTAMPTZ DEFAULT now(),
-  credits               INTEGER NOT NULL DEFAULT 0,
-  created_at            TIMESTAMPTZ DEFAULT now(),
-  updated_at            TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email               TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS full_name           TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url          TEXT;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS plan                TEXT DEFAULT 'free';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'inactive';
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS analyses_this_month INTEGER DEFAULT 0;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS analyses_reset_at   TIMESTAMPTZ DEFAULT now();
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS credits             INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at          TIMESTAMPTZ DEFAULT now();
-
--- ── 5. TABELA ANALYSES ───────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.analyses (
-  id         UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id    UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
-  brand_name TEXT NOT NULL,
-  score      INTEGER,
-  results    JSONB,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-ALTER TABLE public.analyses DROP CONSTRAINT IF EXISTS brand_name_length;
-ALTER TABLE public.analyses ADD CONSTRAINT brand_name_length CHECK (char_length(brand_name) <= 100);
-
--- ── 6. TABELA BRAND KNOWLEDGE (RAG) ─────────────────────────────
-CREATE TABLE IF NOT EXISTS public.brand_knowledge (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  brand_name TEXT NOT NULL,
-  content    TEXT NOT NULL,
-  embedding  VECTOR(1024),
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
-DROP INDEX IF EXISTS brand_knowledge_embedding_idx;
-DROP INDEX IF EXISTS brand_knowledge_brand_idx;
-CREATE INDEX brand_knowledge_embedding_idx ON public.brand_knowledge USING hnsw (embedding vector_cosine_ops);
-CREATE INDEX brand_knowledge_brand_idx     ON public.brand_knowledge (user_id, brand_name);
-
--- ── 7. TABELA RECOVERY CODES ─────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.recovery_codes (
-  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  code_hash  TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  used_at    TIMESTAMPTZ,
-  UNIQUE (user_id)
-);
-
--- ── 8. TABELA NEWSLETTER ─────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.newsletter_subscribers (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email           TEXT NOT NULL UNIQUE,
-  subscribed_at   TIMESTAMPTZ DEFAULT now(),
-  unsubscribed_at TIMESTAMPTZ
-);
-
--- ── 9. TABELA WEBHOOK EVENTS (idempotency Stripe) ────────────────
-CREATE TABLE IF NOT EXISTS public.webhook_events (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  stripe_event_id TEXT NOT NULL UNIQUE,
-  processed_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
 
 -- ── 10. FUNKCJE ──────────────────────────────────────────────────
 
