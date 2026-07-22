@@ -90,7 +90,7 @@ export const Footer = () => {
                 { label: 'About',    to: '#' },
                 { label: 'Blog',     to: '#' },
                 { label: 'Careers',  to: '#', badge: 'Hiring' },
-                { label: 'Contact',  href: 'mailto:kontakt@presora.app' },
+                { label: 'Contact',  href: 'mailto:contact.presora@gmail.com' },
               ].map((item) => (
                 <li key={item.label}>
                   {item.href ? (
