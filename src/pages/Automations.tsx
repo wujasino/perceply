@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Bot, Send, Loader2, Target, Users, CalendarClock, Bell, Sparkles, Check, ArrowRight,
+  Bot, Send, Loader2, Target, Users, CalendarClock, Bell, Sparkles, Check, ArrowRight, Radar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
@@ -114,6 +114,60 @@ const ProposalCard = ({
   </div>
 );
 
+/* "How this works" flow — shows the pipeline steps, filled in with the saved config once one exists. */
+const AutomationFlow = ({ config }: { config: MonitorConfig | null }) => {
+  const steps = [
+    {
+      icon: Target,
+      title: 'Define',
+      desc: config?.brand
+        ? `${config.brand}${config.competitors.length ? ` vs ${config.competitors.slice(0, 2).join(', ')}` : ''}`
+        : 'Brand + competitors',
+    },
+    {
+      icon: CalendarClock,
+      title: 'Schedule',
+      desc: config ? `${config.frequency} scan` : 'Daily, weekly or monthly',
+    },
+    {
+      icon: Radar,
+      title: 'Scan',
+      desc: config?.models?.length ? config.models.join(', ') : 'GPT-4o, Claude, Gemini…',
+    },
+    {
+      icon: Bell,
+      title: 'Alert',
+      desc: config?.alert_metric ? `${config.alert_metric} < ${config.alert_threshold}` : 'Only when it matters',
+    },
+  ];
+
+  return (
+    <div className="mb-6 rounded-xl border border-border bg-card/30 p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+        How this automation works
+      </p>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+        {steps.map((step, i) => (
+          <div key={step.title} className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="flex-1 min-w-0 rounded-lg border border-border bg-background/60 px-3 py-2.5 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <step.icon className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">{step.title}</p>
+                <p className="text-[11px] text-muted-foreground truncate">{step.desc}</p>
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <ArrowRight className="w-4 h-4 text-muted-foreground/50 shrink-0 hidden sm:block" />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Automations = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -219,6 +273,8 @@ const Automations = () => {
           </div>
         </div>
       </div>
+
+      <AutomationFlow config={config} />
 
       {config && <div className="mb-4"><ConfigCard config={config} /></div>}
 
