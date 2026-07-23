@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus, Download, Sparkles, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Clock, TrendingUp, Search, ArrowRight, BarChart2, Zap, ChevronUp, ChevronDown, Plus, Download, Sparkles, AlertTriangle, ExternalLink, Trash2 } from 'lucide-react';
 import { PricingModal } from '@/components/ui/pricing-modal';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/locale';
@@ -51,6 +51,25 @@ function scoreColor(score: number) {
   return 'text-red-400';
 }
 
+/* Keep latest scan per unique brand (input must be sorted newest-first);
+ * also return the 2nd-latest score per brand, used for the delta indicator. */
+function groupLatestByBrand(data: Analysis[]) {
+  const seen = new Set<string>();
+  const latest: Analysis[] = [];
+  const second: Record<string, number> = {};
+
+  for (const a of data) {
+    const k = a.brand_name.trim().toLowerCase();
+    if (!seen.has(k)) {
+      seen.add(k);
+      latest.push(a);
+    } else if (!second[k]) {
+      second[k] = a.trust_score;
+    }
+  }
+  return { latest, second };
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { t, locale } = useTranslation();
@@ -98,26 +117,27 @@ const Profile = () => {
         .order('created_at', { ascending: false });
 
       if (data?.length) {
-        /* Keep latest unique brand for the list; also keep 2nd latest for delta */
-        const seen = new Set<string>();
-        const latest: Analysis[] = [];
-        const second: Record<string, number> = {};
-
-        for (const a of data) {
-          const k = a.brand_name.trim().toLowerCase();
-          if (!seen.has(k)) {
-            seen.add(k);
-            latest.push(a);
-          } else if (!second[k]) {
-            second[k] = a.trust_score;
-          }
-        }
+        const { latest, second } = groupLatestByBrand(data);
         setAnalyses(latest);
         setPrevScores(second);
         setHistory([...data].reverse());
       }
     })();
   }, [navigate]);
+
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  const deleteAnalysis = async (id: string) => {
+    const { error } = await supabase.from('analyses').delete().eq('id', id);
+    if (!error) {
+      const remainingDesc = [...history].reverse().filter(a => a.id !== id);
+      const { latest, second } = groupLatestByBrand(remainingDesc);
+      setAnalyses(latest);
+      setPrevScores(second);
+      setHistory([...remainingDesc].reverse());
+    }
+    setConfirmId(null);
+  };
 
   const downloadFile = (content: string, filename: string, mime: string) => {
     const blob = new Blob([content], { type: mime });
@@ -389,6 +409,34 @@ const Profile = () => {
                         </div>
                         <div className="text-[9px] uppercase tracking-widest text-muted-foreground">score</div>
                       </div>
+
+                      {confirmId === brew.id ? (
+                        <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                          <span className="text-xs text-muted-foreground hidden sm:inline">{t('profile_delete_confirm')}</span>
+                          <button
+                            onClick={() => deleteAnalysis(brew.id)}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-red-500 text-white hover:bg-red-600 transition-colors"
+                          >
+                            {t('profile_delete_yes')}
+                          </button>
+                          <button
+                            onClick={() => setConfirmId(null)}
+                            className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-[hsl(var(--glass-border))] text-foreground hover:bg-accent transition-colors"
+                          >
+                            {t('profile_delete_cancel')}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={e => { e.stopPropagation(); setConfirmId(brew.id); }}
+                          title={t('profile_delete_analysis')}
+                          aria-label={t('profile_delete_analysis')}
+                          className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/5 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+
                       <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary/60 transition-colors" />
                     </div>
                   </motion.div>
