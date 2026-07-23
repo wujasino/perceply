@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph3D, { type ForceGraphMethods } from 'react-force-graph-3d';
+import { Target, Users, Bot, Bell, CalendarClock, type LucideIcon } from 'lucide-react';
 
 interface MonitorConfig {
   brand: string | null;
@@ -34,9 +35,23 @@ const GROUP_COLOR: Record<NodeGroup, string> = {
 
 const GROUP_NAME: Record<NodeGroup, string> = {
   brand: 'Brand',
-  competitor: 'Competitor',
-  model: 'AI model',
+  competitor: 'Competitors',
+  model: 'AI models',
   alert: 'Alert rule',
+};
+
+/* The map — what each node color/shape means, in plain language. */
+const LEGEND: { group: NodeGroup; icon: LucideIcon; desc: string }[] = [
+  { group: 'brand', icon: Target, desc: 'Your tracked brand — the center of the graph' },
+  { group: 'competitor', icon: Users, desc: "Brands you're compared against" },
+  { group: 'model', icon: Bot, desc: 'AI models queried on every scan' },
+  { group: 'alert', icon: Bell, desc: 'Notifies you when a metric crosses your threshold' },
+];
+
+const FREQUENCY_LABEL: Record<MonitorConfig['frequency'], string> = {
+  daily: 'Daily scan',
+  weekly: 'Weekly scan',
+  monthly: 'Monthly scan',
 };
 
 /* Turns the saved monitor config into a brand-centered node graph — competitors, models and the alert rule all orbit the brand node. */
@@ -99,10 +114,33 @@ export const AutomationGraph3D = ({ config }: { config: MonitorConfig | null }) 
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Map — what's what before you look at the graph */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {LEGEND.map(({ group, icon: Icon, desc }) => (
+          <div key={group} className="rounded-lg border border-border bg-card/30 p-2.5 flex items-start gap-2">
+            <div
+              className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
+              style={{ backgroundColor: `${GROUP_COLOR[group]}22` }}
+            >
+              <Icon className="w-3.5 h-3.5" style={{ color: GROUP_COLOR[group] }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-foreground">{GROUP_NAME[group]}</p>
+              <p className="text-[10.5px] text-muted-foreground leading-snug">{desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div
         ref={containerRef}
         className="relative h-[420px] rounded-xl border border-border bg-gradient-to-b from-card/50 via-background to-card/30 overflow-hidden"
       >
+        <div className="absolute top-3 left-3 z-10 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 backdrop-blur px-2.5 py-1 text-[11px] font-medium text-foreground">
+          <CalendarClock className="w-3 h-3 text-primary" />
+          {FREQUENCY_LABEL[config?.frequency ?? 'weekly']}
+        </div>
+
         {size.width > 0 && (
           <ForceGraph3D
             ref={fgRef}
@@ -127,15 +165,7 @@ export const AutomationGraph3D = ({ config }: { config: MonitorConfig | null }) 
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground px-1">
-        {(Object.keys(GROUP_COLOR) as NodeGroup[]).map(group => (
-          <span key={group} className="inline-flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: GROUP_COLOR[group] }} />
-            {GROUP_NAME[group]}
-          </span>
-        ))}
-        <span className="ml-auto italic">Drag to rotate · scroll to zoom</span>
-      </div>
+      <p className="text-[11px] text-muted-foreground italic px-1">Drag to rotate · scroll to zoom</p>
     </div>
   );
 };
